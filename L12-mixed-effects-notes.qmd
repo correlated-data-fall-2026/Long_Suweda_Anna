@@ -1,0 +1,312 @@
+---
+title: "Mixed Effects Models (Notes)"
+subtitle: "Stat 452"
+author: "Your Name"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+---
+
+
+
+
+## Warm Up{-} 
+
+### Random Intercept Model {.unnumbered .smaller}
+
+Using the notation, define $\mathbf{Z}_i$, $\mathbf{b}_i$, and $\mathbf{G}$ for a random intercept model. 
+
+
+
+
+
+If we use a random intercept model and we assume $\boldsymbol\Sigma = \sigma^2_{\epsilon} I$, describe the structure of $Cov(Y_i) = \mathbf{Z}_i\mathbf{G}\mathbf{Z}_i^T + \boldsymbol\Sigma$.
+
+
+
+
+### Random Slope Model {.unnumbered .smaller}
+
+Using the notation, define $\mathbf{Z}_i$, $\mathbf{b}_i$, and $\mathbf{G}$ for a random slope model. 
+
+
+
+
+If we use a random slope model and we assume $\boldsymbol\Sigma = \sigma^2_{\epsilon} I$, describe the structure of $Cov(Y_i) = \mathbf{Z}_i\mathbf{G}\mathbf{Z}_i^T + \boldsymbol\Sigma$.
+
+
+
+
+# Model Selection {.unnumbered .smaller}
+
+When selecting models, we must consider:
+
+- Model Type
+- Mean Model
+- Covariance Model
+
+
+## Choices {.unnumbered .smaller}
+
+- Model Type: Pros and Cons (Mixed Effects v. GEE)
+  - Desired Interpretation
+- Mean Model: Which X's 
+  - Research Question
+  - Research Goals (Causal Inference v. Approximate a relationship)
+- Covariance Model: Structure or Random Effects
+  - Data Context
+  - Resulting Covariance
+  - Goodness of Fit to Data
+
+
+
+## Hypothesis Testing Coefficients {.unnumbered .smaller}
+
+In order to test fixed effects, use ML and not REML, then we can test whether  $\beta_k=0$ for some $k$. 
+
+. . .
+
+<br><br>
+
+In mixed effects models, the estimated covariance matrix for $\hat{\boldsymbol\beta}$ is
+$$\widehat{Cov}(\hat{\boldsymbol\beta}) = \left\{ \sum^n_{i=1} \mathbf{X}_i^T\hat{\mathbf{V}}_i\mathbf{X}_i \right\}^{-1}$$
+
+The standard error for $\hat{\beta}_k$ is the square rooted values of the diagonal of this matrix corresponding to $\hat{\beta}_k$. This is what is reported in the summary output.
+
+. . .
+
+<br><br>
+
+To test the hypothesis $H_0: \beta_k=0$ vs. $H_A: \beta_k\not=0$, we can calculate a t-statistic,
+
+$$t = \frac{\hat{\beta}_k}{SE(\hat{\beta}_k)} $$
+
+
+With mixed effects models, there is debate about what the appropriate distribution of this statistic is, which is why p-values are often not reported in the output. However, if you have an estimate that is large relative to the standard error (greater than 2 SE's away), that is a good indication that it is significantly different from zero. 
+
+
+```{r}
+summary(mod1)
+
+# Manual Code to get t-values
+
+fixef(mod1)/sqrt(diag(vcov(mod1)))
+```
+
+
+
+## Hypothesis Testing Groups of Coefficients {.unnumbered .smaller}
+
+To compare two models (same random effects and same covariance models, but set some $\beta$'s to 0), we could use a **likelihood ratio test**. Suppose we have two models with the same random effects and covariance models, 
+
+- Full model: $M_f$ has $p+1$ columns in $\mathbf{X}_i$ and thus $p+1$ fixed effects $\beta_0,...,\beta_{p}$.
+- Nested model: $M_n$ has $k+1$ columns such that $k < p$ and $p-k$ fixed effects $\beta_l = 0$. 
+
+. . .
+
+<br><br>
+
+If we are using maximum likelihood estimation (not REML), it makes sense to **compare the likelihood of the two models**.
+
+$H_0:$ nested model is true, $H_A:$ full model is true
+
+. . .
+
+<br><br>
+
+If we take the ratio of the likelihoods from the nested model and full model and plug in the maximum likelihood estimators, then we have another statistic.
+
+$$D = -2\log\left(\frac{L_n(\hat{\boldsymbol\beta},\hat{\mathbf{V}})}{L_f(\hat{\boldsymbol\beta},\hat{\mathbf{V}})}\right) = -2 \log(L_n(\hat{\boldsymbol\beta},\hat{\mathbf{V}})) + 2\log(L_f(\hat{\boldsymbol\beta},\hat{\mathbf{V}}))$$
+
+The sampling distribution of this statistic is approximately **chi-squared** with degrees of freedom equal to the **difference in the number of parameters between the two models**.
+
+```{r}
+anova(mod1, mod2) # mod2 is a nested model of mod1
+```
+
+## Goodness of Fit: Information Criteria {.unnumbered .smaller}
+
+To choose between two models, we can use the **Bayesian Information Criterion (BIC)**. BIC is a model selection criterion that penalizes the likelihood of the model by the number of parameters and the sample size. Choose a model with a lower BIC (higher likelihood, fewer parameters).
+
+$$BIC= -2\log(\hat{L}(\hat{\boldsymbol\beta},\hat{\mathbf{V}})) + k\log(n)$$
+
+where $\hat{L}(\hat{\boldsymbol\beta},\hat{\mathbf{V}})$ is the likelihood of the model with estimated parameters $\hat{\boldsymbol\beta}$ and covariance matrix $\hat{\mathbf{V}}$, $k$ is the number of parameters in the model, and $n$ is the number of observations.
+
+- To choose between two models with different random effects, only compare models with the same fixed effects. 
+
+Note: In order to use BIC to choose between mixed effects models, you must use maximum likelihood (ML) estimation instead of REML. 
+
+
+## Model Diagnostics {.unnumbered .smaller}
+
+For any linear model, we should check to see if the residuals have no pattern.
+
+```{r}
+data %>% 
+  mutate(Pred = predict(mod)) %>%
+  mutate(Resid = resid(mod)) %>%
+  ggplot(aes(x = Pred, y = Resid)) + 
+  geom_point(alpha = .2) + 
+  geom_hline(yintercept = 0) + 
+  geom_smooth(se = FALSE) + 
+  theme_classic()
+```
+
+For a mixed effects model, you are assuming the random effects distribution is Normal. 
+
+- You should check on the distribution of the predicted random effects to see if they are approximately Normal.
+
+```{r}
+A <- ranef(mod)
+qqnorm(A)
+qqline(A)
+```
+
+# Small Group Activity {.unnumbered .smaller}
+
+**Download a template Qmd file to start from [here](https://bcheggeseth.github.io/452_fall_2025/student_notes/L12-mixed-effects-notes.qmd).**
+
+## Exercises  {.unnumbered .smaller}
+
+```{r}
+source('cleaning_active.R') #Open Cleaning.R for information about variables.
+head(activeLong)
+```
+
+1. We are going to consider modeling `Memory` as a function of `Years` and treatment group `INTGRP` with a mixed effects model. Let's start by using a random intercept model. Describe the assumptions made by the code below. Consider the assumptions about the model for the mean (fixed effects) and the assumptions about the random effects. 
+
+
+
+```{r}
+activeLong <- activeLong %>% mutate(INTGRP = relevel(INTGRP, ref='Control'))
+
+library(lme4)
+library(tidyr)
+mod1 <- activeLong %>% drop_na(Memory, Years, INTGRP) %>% 
+  lmer(Memory ~ Years*I(Years > 3)*INTGRP + (1|AID), data = ., REML = FALSE)
+
+mod1 %>% summary()
+```
+
+2. Compare the estimated coefficients between the random intercept model and the GEE with an exchangeable working correlation structure. Describe what you observe and explain why it is so. 
+
+
+
+```{r}
+mod2 <- activeLong %>% drop_na(Memory,Years,INTGRP) %>% 
+  geeM::geem(Memory ~ Years*I(Years > 3)*INTGRP, data = ., id = AID, corstr = 'exchangeable')
+
+tibble(MixedBeta = fixef(mod1) %>% round(2), GEEBeta =  mod2$beta %>% round(2)) %>%
+  mutate(Diff = MixedBeta - GEEBeta) 
+```
+
+3. Compare the estimated standard errors between the random intercept model and the GEE with an exchangeable working correlation structure (GEE have naive/model-based and robust SE's). Describe what you observe and explain why it might be so. 
+
+
+
+```{r}
+
+tibble(MixedSE = vcov(mod1) %>% diag() %>% sqrt() %>% round(2), 
+       GEENaivSE =  mod2$naiv.var %>% diag() %>% sqrt() %>% round(2),
+       GEERobustSE =  mod2$var %>% diag() %>% sqrt() %>% round(2)) %>%
+  mutate(Diff = MixedSE- GEENaivSE, Diff2 = MixedSE- GEERobustSE) 
+```
+
+
+4. Now, to get a sense of the random intercept model, let's look at visualizations of the predictions. First, the predictions are based on the fixed effects and the random effects. The second includes the predictions from the fixed effects. Comment on what you observe and how it relates to the assumptions you made within the model. 
+
+
+
+
+```{r}
+activeLong %>% drop_na(Memory, Years, INTGRP) %>%
+  mutate(Pred = predict(mod1)) %>%
+  ggplot(aes(x = Years, y = Pred, color = INTGRP, group = AID)) + 
+  geom_line(alpha = .2) + 
+  labs(color = 'Treatment Group', y = 'Predicted Outcomes (including random effects)') + theme_classic()
+
+activeLong %>% drop_na(Memory, Years, INTGRP) %>%
+  mutate(Pred = predict(mod1, re.form = NA)) %>%
+  distinct(Years,INTGRP,Pred) %>%
+  ggplot(aes(x = Years, y = Pred, color = INTGRP)) + 
+  geom_line() + 
+  labs(color = 'Treatment Group', y = 'Predicted Outcomes (only fixed effects)') + theme_classic()
+```
+
+
+
+5. Looking back on the mixed effects model you fit, what do you conclude about the influence of Memory Training (as compared to Control Group) on Memory Score over time. 
+
+
+
+
+
+
+
+
+6. Compare these three models.  Discuss whether your should favor the larger model or the nested models. In other words, do we have evidence that the treatment group is related to how Memory changes over time on average?
+
+
+
+
+For mixed effects models, here is some example code that allows us to test whether the interactions between `INTGRP` and `Years` are needed (remove them in `mod4`, which is equivalent to setting them all to 0; remove the interactions for Speed and Reasoning training in `mod4` but keep the interaction with Memory).
+
+```{r}
+mod3 <- activeLong %>% drop_na(Memory,Years,INTGRP) %>% 
+  lmer(Memory ~ Years*I(Years > 3)*I(INTGRP == 'Memory Training') + (1|AID), data = ., REML = FALSE)
+
+mod4 <- activeLong %>% drop_na(Memory,Years,INTGRP) %>% 
+  lmer(Memory ~ Years*I(Years > 3) + INTGRP + (1|AID), data = ., REML = FALSE)
+
+anova(mod1, mod4)
+anova(mod1, mod3)
+```
+
+
+
+
+
+7. Discuss which set of fixed effects seems the best using the Bayesian Information Criteria. 
+
+
+
+
+```{r}
+BIC(mod1)
+BIC(mod3)
+BIC(mod4)
+```
+
+
+8. Discuss which set of random effects seems the best using the Bayesian Information Criteria. 
+
+
+
+```{r}
+mod5 <- activeLong %>% drop_na(Memory,Years,INTGRP) %>% 
+  lmer(Memory ~ Years*I(Years > 3)*I(INTGRP == 'Memory Training') + (Years|AID), data = ., REML = FALSE)
+
+BIC(mod3)
+BIC(mod5)
+
+```
+
+
+
+
+
+
+9. Lastly, all of these model selection tools are only valid if the entire model is correct (right mean model, right random effects, distributional assumptions about random effects and errors). Check diagnostics and discuss the limitations of your model with this context in mind.
+
+
+
+
+## Done!
+
+- Render your notes.
+- Check the solutions in the course website (Solution drop downs).
+- If you finish all that during class, start your homework!
+
+
