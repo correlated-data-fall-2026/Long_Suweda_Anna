@@ -1,0 +1,97 @@
+---
+title: "Homework 5 "
+subtitle: "Stat 452"
+author: "Suweda Said"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+bibliography: Library.bib
+---
+
+
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error=TRUE, message=FALSE, warning=FALSE)
+library(tidyverse)
+```
+
+
+For this assignment, I want you to work on your own in your own file, generating ideas by yourself so that when you work with your partner, you'll have twice the number of ideas.
+
+
+
+
+## Data Context {-}
+
+1. Read the following two journal articles about the ACTIVE study.
+
+- <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3934012/>
+- <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4055506/>
+
+Add the citations of these papers to the `Library.bib` file in the Github Repo by going to <https://www.scholar.google.com> and typing the article title. Find the article by double checking authors and titles. Click on Cite and then Bibtex and copy the \@Article{key, ...} text below into the `Library.bib` file. 
+
+
+
+
+
+
+
+2. Write a 5-10 sentence summary about this study and its study design. Cite the articles appropriately in this reflection using the following syntax `[@key]` (adjust `key` according to what you put in the `.bib` file). For example, I could write about misspecification of the covariance matrix in mixture models and refer to my paper [@heggeseth_impact_2013]. 
+
+ANSWER:
+
+
+## Research Question {-}
+
+3. Develop a "linear regression" research question you'd like to explore about aging related to the clinical trial.
+
+Outcome Ideas (choose 1): Reasoning, Memory, Speed of Processing, Functional Outcomes
+
+Predictors: Treatment Group, Years, Baseline Age, Gender, Baseline Values [of any outcome], Interactions, Reasoning, Memory, Speed of Processing, Functional Outcomes
+
+ANSWER:
+
+
+4. Load in the ACTIVE study data and come up with two high quality graphs that provide insight about your research question. 
+
+ANSWER:
+
+```{r}
+source('Cleaning.R') # Open Cleaning.R to see the data cleaning steps to create a long format dataset & more info about each variable
+head(activeLong)
+```
+
+```{r}
+
+```
+
+## Models {-}
+
+5. Use those graphs to inform fitting a series of linear models (using `lm`) predicting the outcome of your choice (as it relates to your research question). Make sure to consider interactions (whether the effect is the same within treatment groups). Provide code and output for one model that you feel is informative about your research question. 
+
+ANSWER:
+
+```{r}
+
+
+```
+
+
+
+
+6. Write about 500 words of what you learn from fitting those models. Make sure you interpret the coefficients accurately and in context. 
+
+
+ANSWER:
+
+
+
+## References {-}
+## Done! {-}
+
+- Render your homework.
+- Make sure the html file looks like you want it.
+- Submit your assignment as instructed.
+
+
