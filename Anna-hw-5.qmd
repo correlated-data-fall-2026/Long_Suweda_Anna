@@ -1,7 +1,7 @@
 ---
 title: "Homework 5 "
 subtitle: "Stat 452"
-author: "Your Name"
+author: "Anna"
 format:
   html:
     toc: true
