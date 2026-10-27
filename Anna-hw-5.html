@@ -2230,7 +2230,6 @@ vertical-align: -.125em;
   <li><a href="#data-context" id="toc-data-context" class="nav-link active" data-scroll-target="#data-context">Data Context</a></li>
   <li><a href="#research-question" id="toc-research-question" class="nav-link" data-scroll-target="#research-question">Research Question</a></li>
   <li><a href="#models" id="toc-models" class="nav-link" data-scroll-target="#models">Models</a></li>
-  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   <li><a href="#done" id="toc-done" class="nav-link" data-scroll-target="#done">Done!</a></li>
   </ul>
 </nav>
@@ -2286,7 +2285,7 @@ vertical-align: -.125em;
 </ol>
 <p>Outcome Ideas (choose 1): Reasoning, Memory, Speed of Processing, Functional Outcomes</p>
 <p>Predictors: Treatment Group, Years, Baseline Age, Gender, Baseline Values [of any outcome], Interactions, Reasoning, Memory, Speed of Processing, Functional Outcomes</p>
-<p>ANSWER: Among participants who received memory training, how does gender affect the relationship between years and memory when controlling for baseline age, years of education, and whether they did a booster training?</p>
+<p>ANSWER: Among participants who received memory training, how does gender affect the relationship between years and memory?</p>
 <ol start="4" type="1">
 <li>Load in the ACTIVE study data and come up with two high quality graphs that provide insight about your research question.</li>
 </ol>
@@ -2330,22 +2329,23 @@ vertical-align: -.125em;
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">gender =</span> <span class="fu">as.character</span>(GENDER),</span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">gender =</span> <span class="fu">str_replace</span>(gender, <span class="st">&quot;1&quot;</span>, <span class="st">&quot;Male&quot;</span>),</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">gender =</span> <span class="fu">str_replace</span>(gender, <span class="st">&quot;2&quot;</span>, <span class="st">&quot;Female&quot;</span>)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    ) </span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>activeLong <span class="sc">|&gt;</span> </span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(INTGRP <span class="sc">==</span> <span class="st">&quot;Memory Training&quot;</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Years, gender) <span class="sc">|&gt;</span> </span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">median =</span> <span class="fu">median</span>(Memory, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Years, <span class="at">y =</span> median, <span class="at">group =</span> gender, <span class="at">color =</span> gender)) <span class="sc">+</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;#F7B9D4&quot;</span>, <span class="st">&quot;#01A6EA&quot;</span>)) <span class="sc">+</span></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Median Memory Assessment Score&quot;</span>,</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">&quot;Gender&quot;</span>,</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Memory over Time by Gender&quot;</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">gender =</span> <span class="fu">str_replace</span>(gender, <span class="st">&quot;2&quot;</span>, <span class="st">&quot;Female&quot;</span>),</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">booster =</span> <span class="fu">as.factor</span>(BOOSTER)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    ) </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>activeLong <span class="sc">|&gt;</span> </span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(INTGRP <span class="sc">==</span> <span class="st">&quot;Memory Training&quot;</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Years, gender) <span class="sc">|&gt;</span> </span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">median =</span> <span class="fu">median</span>(Memory, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Years, <span class="at">y =</span> median, <span class="at">group =</span> gender, <span class="at">color =</span> gender)) <span class="sc">+</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;#F7B9D4&quot;</span>, <span class="st">&quot;#01A6EA&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Median Memory Assessment Score&quot;</span>,</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">&quot;Gender&quot;</span>,</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Memory over Time by Gender&quot;</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -2378,13 +2378,110 @@ vertical-align: -.125em;
 <li>Use those graphs to inform fitting a series of linear models (using <code>lm</code>) predicting the outcome of your choice (as it relates to your research question). Make sure to consider interactions (whether the effect is the same within treatment groups). Provide code and output for one model that you feel is informative about your research question.</li>
 </ol>
 <p>ANSWER:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>activeLongfltr <span class="ot">&lt;-</span> activeLong <span class="sc">|&gt;</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(INTGRP <span class="sc">==</span> <span class="st">&quot;Memory Training&quot;</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">years =</span> <span class="fu">as.factor</span>(Years)) <span class="sc">|&gt;</span> </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(Memory, years, gender, Age, YRSEDUC, BOOSTER)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>mod1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Memory <span class="sc">~</span> years <span class="sc">+</span> gender, <span class="at">data =</span> activeLongfltr)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>mod2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Memory <span class="sc">~</span> Years<span class="sc">*</span><span class="fu">I</span>(Years <span class="sc">&gt;</span> <span class="dv">3</span>)<span class="sc">*</span>gender, <span class="at">data =</span> activeLongfltr)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>mod3 <span class="ot">&lt;-</span> <span class="fu">geem</span>(Memory <span class="sc">~</span> years<span class="sc">*</span>gender <span class="sc">+</span> Age <span class="sc">+</span> YRSEDUC <span class="sc">+</span> BOOSTER, <span class="at">data =</span> activeLongfltr, <span class="at">id =</span> AID, <span class="at">corstr =</span> <span class="st">&quot;ar1&quot;</span>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mod1)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = Memory ~ years + gender, data = activeLongfltr)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-75.353 -10.677   1.647  12.129  42.992 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)  82.4863     0.7012 117.633  &lt; 2e-16 ***
+years0.25     0.8843     0.9622   0.919    0.358    
+years1        0.5213     1.0104   0.516    0.606    
+years2        5.1903     1.0225   5.076 4.07e-07 ***
+years3        6.3664     1.0458   6.088 1.28e-09 ***
+years5       -0.9378     1.1050  -0.849    0.396    
+years10      -6.9510     1.3393  -5.190 2.23e-07 ***
+genderMale   -6.3099     0.7110  -8.874  &lt; 2e-16 ***
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+Residual standard error: 16.97 on 3306 degrees of freedom
+Multiple R-squared:  0.05799,   Adjusted R-squared:  0.056 
+F-statistic: 29.07 on 7 and 3306 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mod2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = Memory ~ Years * I(Years &gt; 3) * gender, data = activeLongfltr)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-75.567 -10.583   1.677  12.177  42.543 
+
+Coefficients:
+                                  Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)                        82.2553     0.5306 155.020  &lt; 2e-16 ***
+Years                               2.2705     0.3386   6.705 2.37e-11 ***
+I(Years &gt; 3)TRUE                    4.8188     2.3864   2.019   0.0435 *  
+genderMale                         -6.0052     1.1085  -5.417 6.49e-08 ***
+Years:I(Years &gt; 3)TRUE             -3.3939     0.4654  -7.292 3.80e-13 ***
+Years:genderMale                   -0.2193     0.7084  -0.310   0.7569    
+I(Years &gt; 3)TRUE:genderMale         2.4138     5.4089   0.446   0.6554    
+Years:I(Years &gt; 3)TRUE:genderMale  -0.2361     1.0345  -0.228   0.8195    
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+Residual standard error: 16.98 on 3306 degrees of freedom
+Multiple R-squared:  0.05634,   Adjusted R-squared:  0.05434 
+F-statistic:  28.2 on 7 and 3306 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mod3)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                     Estimates Model SE Robust SE      wald        p
+(Intercept)          132.90000  6.49100   7.47500  17.78000 0.000000
+years0.25              0.10450  0.49280   0.43410   0.24060 0.809800
+years1                -0.85790  0.65960   0.47590  -1.80300 0.071430
+years2                 4.78700  0.75990   0.53600   8.93200 0.000000
+years3                 6.79600  0.85180   0.62140  10.94000 0.000000
+years5                 0.32410  0.97960   0.87860   0.36880 0.712300
+years10               -3.68800  1.07000   1.36700  -2.69800 0.006974
+genderMale            -8.25900  1.41900   1.33300  -6.19500 0.000000
+Age                   -1.04300  0.08039   0.09389 -11.11000 0.000000
+YRSEDUC                1.95600  0.17780   0.20760   9.42500 0.000000
+BOOSTER                0.96300  0.95620   1.10200   0.87400 0.382100
+years0.25:genderMale   0.82040  1.04200   0.95690   0.85730 0.391300
+years1:genderMale      0.52630  1.39000   1.06000   0.49670 0.619400
+years2:genderMale      0.16420  1.59600   1.17100   0.14020 0.888500
+years3:genderMale     -0.06458  1.75700   1.30900  -0.04933 0.960700
+years5:genderMale      0.72200  1.96800   1.63000   0.44300 0.657800
+years10:genderMale    -1.76100  1.85200   2.53000  -0.69580 0.486500
+
+ Estimated Correlation Parameter:  0.7636 
+ Correlation Structure:  ar1 
+ Est. Scale Parameter:  236.4 
+
+ Number of GEE iterations: 5 
+ Number of Clusters:  698    Maximum Cluster Size:  7 
+ Number of observations with nonzero weight:  3314 </code></pre>
+</div>
+</div>
 <ol start="6" type="1">
 <li>Write about 500 words of what you learn from fitting those models. Make sure you interpret the coefficients accurately and in context.</li>
 </ol>
 <p>ANSWER:</p>
-</section>
-<section id="references" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
+<p>The first model predicts memory scores as a function of years and gender, with years treated as a factor. Being male is associated with an average 6.3099 decrease in memory scores compared with females while holding years constant. At the intervals on one, two, and three years, memory scores are on average higher than the reference group by an average of 0.5213, 5.1903, and 6.3664 points respectively. At five and ten years, however, memory scores are 0.9378 and 6.9510 points lower on average. However, because the data is longitudinal and, therefore, correlated we cannot tell whether these coefficients are statistically significant because lm() assumes independent errors.</p>
+<p>The second model divides the numerical <code>Years</code> variable into before and after Year 3 and takes into account the effect that gender has on the relationship between years and memory scores. Being over three years the initial memory training session is associated with an average increase of 4.8188 points, while being male (similar to the previous model) is associated with an average decrease of 6.0052 points while holding years constant. Being over three years out from the training and male adds an average of 3.46948 points. However, like the previous model we cannot tell say with certainty whether these coefficients are statistically significant.</p>
+<p>The second model lets the relationship between years since the initial memory training session and memory scores to change after the third year while accounting for how gender interacts with time. Among women for the first three years, an additional year is associated with an average increase or 2.2705. After the third year, the slope decreases by an average of 3.3939 points per year. Being more than three years out from the training has a positive coefficient of 4.8188, which represents a positive shift of the intercept. Men have an estimated memory score 6.0052 points lower than females at the start, and none of the interaction terms with gender are statistically significant.</p>
+<p>In the third model, gender, age, and years of education all have a statistically significant relationship with memory scores. On average, being male is associated with a 8.259 decrease in memory scores when holding all else constant. Age is negatively associated with memory: with each additional year, a participant’s memory score worsens by an average of 1.043 points. Years of education, however, has a positive relationship with memory; one additional year of education is associated with a 1.956 increase in memory score. During the trial, memory scores at the two and three year intervals saw an improvement compared to the reference time (4.787 and 6.796 points, respectively), but at ten years, memory scores were lower by an average of 3.688 points (p=0.00697). The 0.963 point increase in memory score of participants who did a booster session was not statistically significant, with a p-value of 0.382. This means there is insufficient evidence to prove that gender has an effect on the relationship between years and memory.</p>
 </section>
 <section id="done" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="done">Done!</h2>

@@ -239,7 +239,9 @@ activeLong %>% drop_na(Memory, Years, INTGRP) %>%
 
 5. Looking back on the mixed effects model you fit, what do you conclude about the influence of Memory Training (as compared to Control Group) on Memory Score over time. 
 
-
+```{r}
+summary(mod1)
+```
 
 
 
@@ -290,7 +292,6 @@ mod5 <- activeLong %>% drop_na(Memory,Years,INTGRP) %>%
 
 BIC(mod3)
 BIC(mod5)
-
 ```
 
 

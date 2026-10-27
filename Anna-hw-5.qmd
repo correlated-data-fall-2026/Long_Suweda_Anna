@@ -14,6 +14,7 @@ bibliography: Library.bib
 ```{r include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, error=TRUE, message=FALSE, warning=FALSE)
 library(tidyverse)
+library(geeM)
 ```
 
 
@@ -50,7 +51,7 @@ Outcome Ideas (choose 1): Reasoning, Memory, Speed of Processing, Functional Out
 
 Predictors: Treatment Group, Years, Baseline Age, Gender, Baseline Values [of any outcome], Interactions, Reasoning, Memory, Speed of Processing, Functional Outcomes
 
-ANSWER: Among participants who received memory training, how does gender affect the relationship between years and memory when controlling for baseline age, years of education, and whether they did a booster training?
+ANSWER: Among participants who received memory training, how does gender affect the relationship between years and memory?
 
 
 4. Load in the ACTIVE study data and come up with two high quality graphs that provide insight about your research question. 
@@ -106,21 +107,35 @@ ANSWER:
 ```{r}
 activeLongfltr <- activeLong |> 
   filter(INTGRP == "Memory Training") |> 
-  mutate(years = as.factor(Years))
+  mutate(years = as.factor(Years)) |> 
+  drop_na(Memory, years, gender, Age, YRSEDUC, BOOSTER)
 
-mod <- lm(Memory ~ years*gender + Age + YRSEDUC + BOOSTER, data = activeLongfltr)
+mod1 <- lm(Memory ~ years + gender, data = activeLongfltr)
 
-summary(mod)
+mod2 <- lm(Memory ~ Years*I(Years > 3)*gender, data = activeLongfltr)
+
+mod3 <- geem(Memory ~ years*gender + Age + YRSEDUC + BOOSTER, data = activeLongfltr, id = AID, corstr = "ar1")
+
+summary(mod1)
+
+summary(mod2)
+
+summary(mod3)
 ```
 
 
+6. Write about 500 words of what you learn from fitting those models. Make sure you interpret the coefficients accurately and in context.
 
 
-6. Write about 500 words of what you learn from fitting those models. Make sure you interpret the coefficients accurately and in context. 
+ANSWER: 
 
+The first model predicts memory scores as a function of years and gender, with years treated as a factor. Being male is associated with an average 6.3099 decrease in memory scores compared with females while holding years constant. At the intervals on one, two, and three years, memory scores are on average higher than the reference group by an average of 0.5213, 5.1903, and 6.3664 points respectively. At five and ten years, however, memory scores are 0.9378 and 6.9510 points lower on average. However, because the data is longitudinal and, therefore, correlated we cannot tell whether these coefficients are statistically significant because lm() assumes independent errors.
 
-ANSWER:
+The second model divides the numerical `Years` variable into before and after Year 3 and takes into account the effect that gender has on the relationship between years and memory scores. Being over three years the initial memory training session is associated with an average increase of 4.8188 points, while being male (similar to the previous model) is associated with an average decrease of 6.0052 points while holding years constant. Being over three years out from the training and male adds an average of 3.46948 points. However, like the previous model we cannot tell say with certainty whether these coefficients are statistically significant.
 
+The second model lets the relationship between years since the initial memory training session and memory scores to change after the third year while accounting for how gender interacts with time. Among women for the first three years, an additional year is associated with an average increase or 2.2705. After the third year, the slope decreases by an average of 3.3939 points per year. Being more than three years out from the training has a positive coefficient of 4.8188, which represents a positive shift of the intercept. Men have an estimated memory score 6.0052 points lower than females at the start, and none of the interaction terms with gender are statistically significant.
+
+In the third model, gender, age, and years of education all have a statistically significant relationship with memory scores. On average, being male is associated with a  8.259 decrease in memory scores when holding all else constant. Age is negatively associated with memory: with each additional year, a participant's memory score worsens by an average of 1.043 points. Years of education, however, has a positive relationship with memory; one additional year of education is associated with a 1.956 increase in memory score. During the trial, memory scores at the two and three year intervals saw an improvement compared to the reference time (4.787 and 6.796 points, respectively), but at ten years, memory scores were lower by an average of 3.688 points (p=0.00697). The 0.963 point increase in memory score of participants who did a booster session was not statistically significant, with a p-value of 0.382. This means there is insufficient evidence to prove that gender has an effect on the relationship between years and memory. 
 
 
 ## Done! {-}
