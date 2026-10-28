@@ -39,7 +39,7 @@ Add the citations of these papers to the `Library.bib` file in the Github Repo b
 
 2. Write a 5-10 sentence summary about this study and its study design. Cite the articles appropriately in this reflection using the following syntax `[@key]` (adjust `key` according to what you put in the `.bib` file). For example, I could write about misspecification of the covariance matrix in mixture models and refer to my paper [@heggeseth_impact_2013]. 
 
-ANSWER:
+ANSWER: The study measures cognitive function of older adults, age 65 or above. The functions that researches were interested in observing were memory, processing speed, and reasoning. The goal of the study was to help older adults maintain independence and their ability to do daily tasks.In the study day to day tasks are considered keeping up with basic hygeine, getting dressed, shopping, and answering the phone. The study started in 1996, and the 2,800 participants were split into 4 groups, one control, and 3 treatment. The specific interventions used were verbal instruction and practice for the memory group, pattern problem solving training was used for the reasoning group, and visual search exercises were used for the processing speed group. At the 11th and 35th mark the some of the participants in the treatment groups were given extra training as a "booster". 
 
 
 ## Research Question {-}
@@ -50,7 +50,9 @@ Outcome Ideas (choose 1): Reasoning, Memory, Speed of Processing, Functional Out
 
 Predictors: Treatment Group, Years, Baseline Age, Gender, Baseline Values [of any outcome], Interactions, Reasoning, Memory, Speed of Processing, Functional Outcomes
 
-ANSWER:
+ANSWER: Does gender have an effect on the outcomes we measure? Is there an association between positive effect and gender? Or would we be able to take a closer look at cases where people didn't finish the trial, is there any commonality between the participants that dropped out? 
+
+
 
 
 4. Load in the ACTIVE study data and come up with two high quality graphs that provide insight about your research question. 
