@@ -1,0 +1,172 @@
+---
+title: "Homework 6 "
+subtitle: "Stat 452"
+author: "Your Name"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+---
+
+
+
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error=TRUE)
+library(tidyverse)
+```
+
+For this assignment, I want you to work together with a partner.
+
+
+## Research Question {-}
+
+1. Based on your previous work with this data set, including your literature search, come up with one research question to address as a team.
+
+
+
+ANSWER:
+
+
+2. Based on your previous work with this data set, including your literature search, come up with a mean model (x's and their functional format) that addresses your research question (accounting for potential confounders).
+
+
+
+ANSWER (In R formula structure): 
+
+
+## Longitudinal Models {-}
+
+
+Let's do a quick review:
+
+**Marginal Models** For models fit with GEE, we need to specify a working correlation structure, but the robust standard errors are valid even if we get that structure wrong. 
+
+**Mixed Effects Models** We can write a linear mixed effects model in terms of our outcome vector, 
+
+$$\mathbf{Y}_{i} =  \mathbf{X}_{i}\boldsymbol\beta + \mathbf{Z}_i\mathbf{b}_i + \boldsymbol\epsilon_i$$
+
+$$ = \text{Fixed effects} + \text{Random effects} + \text{Error}$$
+
+where $\mathbf{X}_i$ is the design matrix for the fixed effects, $\mathbf{Z}_i$ is the design matrix for the random effects (a subset of columns of $\mathbf{X}_i$), $\boldsymbol\epsilon_i\sim N(0,\boldsymbol\Sigma)$,  $\mathbf{b}_i\sim N(0,\mathbf{G})$, and $\mathbf{b}_i$ and $\boldsymbol\epsilon_i$ are independent.
+
+Thus, 
+
+$$\mathbf{Y}_{i}\sim \mathcal{N}(\mathbf{X}_{i}\boldsymbol\beta,\mathbf{Z}_i\mathbf{G}\mathbf{Z}_i^T + \boldsymbol\Sigma) $$
+
+BEFORE YOU BEGIN: Decide whether you and your partner want to use Mixed Effects or GEE models. You'll use the type of model throughout.
+
+
+
+
+3. Come up with at least 2 candidate models (different correlation structures) that you want to fit.
+
+- GEE: consider working correlation structures, describe them in words, and then fit them with `geeM::geem()`. 
+- Mixed Effects: start with random intercept and consider which coef could be random, describe them in words, and then fit them with `lme4::lmer()`. 
+
+```{r}
+source('cleaning_active.R') # Open Cleaning.R to see the data cleaning steps to create a long format dataset
+library(geeM)
+library(lme4)
+```
+
+ANSWER:
+
+- Model 1:
+
+```{r}
+
+```
+
+- Model 2:
+
+```{r}
+
+```
+
+
+
+4. Write bullet points about what you learn about your outcome, research question, and the modeling process from fitting these two models. 
+
+ANSWER:
+
+-
+-
+-
+
+
+## Inference {-}
+
+### Hypothesis Testing for Fixed Coefficients (one at a time) {-}
+
+We can use this inference tool for either GEE or Mixed Effects Models. 
+
+We can test whether  $\beta_k=0$ for some $k$. 
+
+In marginal models (GEE), the estimated covariance matrix for $\hat{\boldsymbol\beta}$ is given by the robust sandwich estimator. The Robust SE for $\hat{\beta}_k$ is the square rooted values of the diagonal of this matrix corresponding to $\hat{\beta}_k$. This is what is reported in the summary output as Robust SE.
+
+In mixed effects models, the estimated covariance matrix for $\hat{\boldsymbol\beta}$ is based on assuming the random effects are correct. 
+
+To test the hypothesis $H_0: \beta_k=0$ vs. $H_A: \beta_k\not=0$, we can calculate a z-statistic,
+
+$$z = \frac{\hat{\beta}_k}{SE(\hat{\beta}_k)} $$
+
+
+With GEE, the `geem()` function provides z statistics (labeled as `wald`) and associated p-values for testing $H_0: \beta_k= 0$. These p-values come from a Normal distribution because we know that is the asymptotic (as the sample size, $n\rightarrow \infty$) distribution for these estimates.  
+
+With mixed effects, the `lmer()` function provides z statistics (labeled as `t-value`) for the fixed effects (but not the p-values) for testing $H_0: \beta_k= 0$. We could compare the t-values to the cut off of +/-2 because we know that the asymptotic (as the sample size, $n\rightarrow \infty$) distribution for these estimates is Normal if the model is correct.  
+
+```{r}
+#gee_mod1 %>% summary()
+#lmer_mod1 %>% summary()
+
+
+```
+
+5. Looking back on the models you fit, what do you conclude about the fixed coefficients? Do you think they are zero or not?
+
+
+ANSWER:
+
+
+
+
+### Diagnostics {-}
+
+For any model with a quantitative outcome, we should check to see if the residuals have no pattern.
+
+6. Create a residual plot for your best model so far, plotting the residuals on the y-axis against a quantitative x-variable. Comment on the residual plot. See some example code below. 
+
+ANSWER:
+
+```{r}
+# Residuals = Obs - Predicted
+
+data %>% 
+  mutate(Pred = predict(mod, newdata = .)) %>% #replace mod with your chosen model
+  mutate(Resid = y - Pred) %>% #replace y with your outcome
+  ggplot(aes(x = Pred, y = Resid)) +  # you can replace Pred with a quantitative x
+  geom_point(alpha = .2) + 
+  geom_hline(yintercept = 0) + 
+  geom_smooth(se = FALSE) + 
+  theme_classic()
+
+
+
+```
+
+7. Considering all of the choices you need to make, make an argument for one final model using a variety of tools in 3-5 sentences. 
+
+ANSWER:
+
+
+8. Using that final model, what do you conclude about your original research question about brain training among the elderly?
+
+ANSWER:
+## Done! {-}
+
+- Render your homework.
+- Make sure the html file looks like you want it.
+- Submit your assignment as instructed.
+
+
