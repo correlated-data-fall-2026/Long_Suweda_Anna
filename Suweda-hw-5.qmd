@@ -33,10 +33,6 @@ Add the citations of these papers to the `Library.bib` file in the Github Repo b
 
 
 
-
-
-
-
 2. Write a 5-10 sentence summary about this study and its study design. Cite the articles appropriately in this reflection using the following syntax `[@key]` (adjust `key` according to what you put in the `.bib` file). For example, I could write about misspecification of the covariance matrix in mixture models and refer to my paper [@heggeseth_impact_2013]. 
 
 ANSWER: The study measures cognitive function of older adults, age 65 or above. The functions that researches were interested in observing were memory, processing speed, and reasoning. The goal of the study was to help older adults maintain independence and their ability to do daily tasks.In the study day to day tasks are considered keeping up with basic hygeine, getting dressed, shopping, and answering the phone. The study started in 1996, and the 2,800 participants were split into 4 groups, one control, and 3 treatment. The specific interventions used were verbal instruction and practice for the memory group, pattern problem solving training was used for the reasoning group, and visual search exercises were used for the processing speed group. At the 11th and 35th mark the some of the participants in the treatment groups were given extra training as a "booster". 
@@ -50,21 +46,43 @@ Outcome Ideas (choose 1): Reasoning, Memory, Speed of Processing, Functional Out
 
 Predictors: Treatment Group, Years, Baseline Age, Gender, Baseline Values [of any outcome], Interactions, Reasoning, Memory, Speed of Processing, Functional Outcomes
 
-ANSWER: Does gender have an effect on the outcomes we measure? Is there an association between positive effect and gender? Or would we be able to take a closer look at cases where people didn't finish the trial, is there any commonality between the participants that dropped out? 
+ANSWER: How do gender and education effect memory outcomes? 
 
-
-
+How does education pair with the other groups, does it effect outcomes over time? 
 
 4. Load in the ACTIVE study data and come up with two high quality graphs that provide insight about your research question. 
 
 ANSWER:
 
 ```{r}
-source('Cleaning.R') # Open Cleaning.R to see the data cleaning steps to create a long format dataset & more info about each variable
+source('cleaning_active.R') # Open Cleaning.R to see the data cleaning steps to create a long format dataset & more info about each variable
 head(activeLong)
 ```
 
 ```{r}
+
+library(lme4)
+library(tidyr)
+#education and memory 2 models 
+#one interaction, one without
+
+edu_mod1 <- activeLong %>% drop_na(Memory, Years, YRSEDUC) %>% 
+  lmer(Memory ~ Years + YRSEDUC + (1|AID), data = ., REML = FALSE)
+
+edu_mod1 %>% summary()
+
+edu_int_mod <- activeLong %>% drop_na(Memory, Years, YRSEDUC) %>% 
+  lmer(Memory ~ Years*YRSEDUC + (1|AID), data = ., REML = FALSE)
+
+edu_int_mod %>% summary()
+
+activeLong |> drop_na(Memory, Years, YRSEDUC) |>
+  mutate(Pred = predict(edu_mod1)) |>
+  ggplot(aes(x = YRSEDUC, y = Pred, color = Years )) + 
+  geom_point(alpha = .2) + 
+  geom_smooth()
+  labs(x= "Years Education" , y = "Pred.Memory Score") + theme_classic()
+
 
 ```
 
@@ -75,6 +93,26 @@ head(activeLong)
 ANSWER:
 
 ```{r}
+
+#education and gender
+
+modEduGen_mem <- activeLong %>% drop_na(Memory, Years, YRSEDUC, GENDER) %>% 
+  lmer(Memory ~ Years + YRSEDUC*GENDER + (1|AID), data = ., REML = FALSE)
+
+modEduGen_mem %>% summary()
+
+anova(mod_edu, modEduGen_mem)
+
+
+#referenced activity for code structure
+
+activeLong |> drop_na(Memory, Years, YRSEDUC, GENDER) |>
+  mutate(Pred = predict(modEduGen_mem, re.form = NA)) |>
+  distinct(YRSEDUC, GENDER, Years, Pred) |>
+  ggplot(aes(x = Years, y = Pred, color = factor(GENDER))) + 
+  geom_point(alpha=0.2) + 
+  geom_smooth() +
+  labs(x = "Years", y = "Pred Memory Score", color = 'Gender') + theme_classic()
 
 
 ```
@@ -87,7 +125,15 @@ ANSWER:
 
 ANSWER:
 
+In our first test model, we use linear mixed effects to understand the relationship between education and memory. First try is without an interaction term, there is some positive effect, patients with higher education have higher memory scores. After fitting memory with education as interaction term we get very similar results, our estimate 1.66 is only slightly lower than 1.67 in the previous model, a year of education is expected to slightly increase memory score by 1.66. Participants with higher education may have better scores in memory, but it possible they may decline similarly over time. 
 
+Without education as an interaction term, the first model has 100626.0 100663.5 as AIC and BIC outputs, model 2 had 100628.0 100672.9, although these numbers are very similar, the outputs from the first model are preferable. The higher AIC and BIC in the second model tells us that our outputs do not explain enough to justify the additional complexity added to the model, or that using education as interaction doesn't improve the model much. 
+
+The graphic in this section models predicted memory scores with years of education, for more insight a geom line is added, without the smooth to see where some fluctation exists, like at the 10 year mark. 
+
+In the second model, we consider gender and education with memory score, then we use an anova command to compare it with the first model, education before interaction terms. We can see there is a pretty big difference in outputs like AIC and BIC between the two. For model 1, we have 100626 100663 as our AIC and BIC, the outputs are 100428 100480 for model 3, this close to a 180-190 point decrease. Adding gender into the model is justified, the complexity doesn't outweight the fit. 
+
+Our second graphic takes gender into account, we can see that gender 2 or women, tend to have a higher intercept, or starting point than men when measuring predicted memory scores. Looking at the individual slopes there is not much notable in decline, both continue to decrease past the 5 year mark.
 
 ## References {-}
 ## Done! {-}
