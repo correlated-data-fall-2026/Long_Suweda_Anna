@@ -1,5 +1,5 @@
 ---
-title: "Longitudal Analysis of Elderly Cognitive Training"
+title: "Longitudinal Analysis of Elderly Cognitive Training"
 author: "Suweda Said, Anna Moan"
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 format: 
