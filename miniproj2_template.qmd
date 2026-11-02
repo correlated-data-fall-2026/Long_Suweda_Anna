@@ -1,0 +1,91 @@
+---
+title: "Analysis of Elderly Cognitive Training"
+author: "Suweda Said, Anna Moan"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+format: 
+  html:
+    code-tools: 
+      source: true    # Shows "View Source"
+      toggle: false   # Hides the options to show/hide code chunks
+      caption: none   # Removes the "Code" caption (optional)
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+bibliography: Library.bib
+abstract: "Here is  a brief summary of why this paper is important and what are the main conclusions."
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warnings=FALSE)
+```
+
+## Introduction
+
+Here is your introduction to the topic. You should cite important and relevant work [@heggeseth_impact_2013].
+
+## Data
+
+Describe the data source and the data itself. 
+
+Describe the variables of interest and how they were measured.
+
+## Methods
+
+Describe and justify the statistical methods used in enough detail that the analysis could be replicated, citing original authors for methods and R packages used. Cite statistical methods such as the EM Algorithm [@dempster_maximum_1977]. 
+
+Describe model selection process and criteria used to evaluate models. 
+
+```{r results = "hide"}
+#read in data
+#clean data, as needed
+```
+
+## Results
+
+Tables, graphics, and statistics, Oh my!
+
+Talk about the results, but don't tie it to your main question/topic (yet!).
+
+```{r results = "hide", echo = FALSE}
+#echo = FALSE forces it to not show the code
+#results = "hide" hides the output but shows the code
+
+
+
+
+
+```
+
+```{r echo = FALSE}
+library(kableExtra)
+#https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
+# Can show a table of output saved as a data frame
+
+#df %>%
+#  kbl() %>%
+#  kable_styling()
+```
+
+
+Stick to facts and observations.
+
+## Conclusions
+
+Connect and hypothesize about results in larger context. 
+
+Talk about what you learn about the topic from your results.
+
+Discuss limitations of methods.
+
+
+## Acknowledgements
+
+Thank individuals who helped make this work possible. 
+
+To do the references, build a Bibtex file (.bib) by creating a New File (text file) in RStudio and Save as Library.bib. It is the easiest to use Google Scholar to get the entries for the Bibtex file. Look for quotes and press Bibtex. Copy and paste into a .bib file. Check out Bibliographic Information at https://en.wikipedia.org/wiki/BibTeX. 
+
+Check out how to include citations into Quarto files at this site: https://quarto.org/docs/authoring/citations.html
+
+
+
+## References
