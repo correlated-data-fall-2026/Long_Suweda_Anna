@@ -1,7 +1,7 @@
 ---
 title: "Homework 6 "
 subtitle: "Stat 452"
-author: "Your Name"
+author: "Suweda and Anna"
 format:
   html:
     toc: true
@@ -25,14 +25,23 @@ For this assignment, I want you to work together with a partner.
 
 
 
-ANSWER:
+ANSWER: We will take a look at the other groups, we will model reasoning with some of the explanatory variables like education, and years. Then we'll try to see what it looks like when we consider if the patient received any boosters, we will try this as an interaction term. 
+
 
 
 2. Based on your previous work with this data set, including your literature search, come up with a mean model (x's and their functional format) that addresses your research question (accounting for potential confounders).
 
 
 
-ANSWER (In R formula structure): 
+ANSWER (In R formula structure): Measure reasoning overtime with years and education as our explanatory variables.
+
+$$
+Y_{ij} = \beta_{0} + b_{i0} + \beta_{1}+ b_{i1} \\
+
+(Reasoning_{ij}) =  \beta_{0} + b_{i0} + \beta_{1}*Years_{ij} + \beta_{2}*YRSEDUC_{i}
+
+$$
+
 
 
 ## Longitudinal Models {-}
@@ -46,7 +55,14 @@ Let's do a quick review:
 
 $$\mathbf{Y}_{i} =  \mathbf{X}_{i}\boldsymbol\beta + \mathbf{Z}_i\mathbf{b}_i + \boldsymbol\epsilon_i$$
 
+
+
 $$ = \text{Fixed effects} + \text{Random effects} + \text{Error}$$
+
+
+
+
+
 
 where $\mathbf{X}_i$ is the design matrix for the fixed effects, $\mathbf{Z}_i$ is the design matrix for the random effects (a subset of columns of $\mathbf{X}_i$), $\boldsymbol\epsilon_i\sim N(0,\boldsymbol\Sigma)$,  $\mathbf{b}_i\sim N(0,\mathbf{G})$, and $\mathbf{b}_i$ and $\boldsymbol\epsilon_i$ are independent.
 
@@ -56,31 +72,84 @@ $$\mathbf{Y}_{i}\sim \mathcal{N}(\mathbf{X}_{i}\boldsymbol\beta,\mathbf{Z}_i\mat
 
 BEFORE YOU BEGIN: Decide whether you and your partner want to use Mixed Effects or GEE models. You'll use the type of model throughout.
 
+```{r}
+#We will use linear mixed effects models
+
+activeLong %>%
+  group_by(Years,INTGRP,BOOSTER) %>%
+  summarize(Reasoning = mean(Reasoning,na.rm=TRUE)) %>%
+  ggplot(aes(x = Years,  y =Reasoning, color = INTGRP)) + 
+  geom_line() + facet_wrap(~BOOSTER)
+```
 
 
 
 3. Come up with at least 2 candidate models (different correlation structures) that you want to fit.
 
 - GEE: consider working correlation structures, describe them in words, and then fit them with `geeM::geem()`. 
+
 - Mixed Effects: start with random intercept and consider which coef could be random, describe them in words, and then fit them with `lme4::lmer()`. 
 
 ```{r}
 source('cleaning_active.R') # Open Cleaning.R to see the data cleaning steps to create a long format dataset
 library(geeM)
 library(lme4)
+
+activeLong <- activeLong %>%
+  group_by(AID) %>%
+  mutate(Baseline_Reasoning = Reasoning[Years == 0])
 ```
 
 ANSWER:
 
+
+#try reasoning with booster as an interaction term
+
 - Model 1:
 
+
+
 ```{r}
+
+rsn_mod1 <- activeLong %>% drop_na(Reasoning, Years, YRSEDUC) %>% 
+  lmer(Reasoning ~ Years + YRSEDUC + (1|AID), data = ., REML = FALSE)
+#linear mixed effect model for reasoning and education
+
+rsn_mod1  %>% summary()
+
+#11.22 std dev of intercept
+
+
+
+rsn_mod1 <- activeLong %>% filter(Years > 0) %>% drop_na(Reasoning, Baseline_Reasoning, Years, YRSEDUC,BOOSTER) %>% 
+  lmer(Reasoning ~ Baseline_Reasoning + Years*I(Years > 3)*I(INTGRP == 'Reasoning Training')*BOOSTER + YRSEDUC + (1|AID), data = ., REML = FALSE)
+
+rsn_mod1  %>% summary()
+#linear mixed effect model for reasoning and education
+
+
+```
+
+```{r}
+
+
+rsn_ME_boost <- activeLong %>% drop_na(Reasoning, Years, YRSEDUC, BOOSTER) %>% 
+  lmer(Reasoning ~ Years*BOOSTER + YRSEDUC + (1|AID), data = ., REML = FALSE)
+
+rsn_ME_boost %>% summary()
 
 ```
 
 - Model 2:
 
 ```{r}
+
+#random intercept mixed effects model
+
+rsn_MEmod2 <- activeLong %>% drop_na(Reasoning, Years, YRSEDUC, AID) %>% 
+  lmer(Reasoning ~ Years + YRSEDUC + (Years|AID), data = ., REML = FALSE)
+
+rsn_MEmod2 %>% summary()
 
 ```
 
@@ -90,9 +159,15 @@ ANSWER:
 
 ANSWER:
 
--
--
--
+- Model 1: mixed effects and random intercept. This model has a better BIC, but lower AIC compared to model 2. We can see that the expected reasoning score is 3.89, overtime this is expected to go down by 0.32, when considering the years of patient education there is a positive effect of 1.82.
+
+
+- Model 2: random intercept, with booster term
+- The AIC improves compared to model 1, but the BIC is a little bit higher, we get an output 1.45, this tells us that when holding everything else constant patients that receive a booster score a little bit higher than patients without it. So there is a small positive effect with boosters and reasoning compared to patients without it. 
+
+
+- Model 3: mixed effects and, random intercept, random slope 
+- This model includes random intercept and random slopes, it doesn't include boosters as an interaction. It has the lowest AIC and BIC of the three. This tells us about the fit of the model, it doesn't receive a penalty for added complexity. The random intercept here is 3.89, this is where most patients tend to start for the mean reasoning score, when we consider education/YRSEDUC we can expect the score to be around 1.82 points higher for each year, in ghe fixed effects part we see that over time/years, the reasoning score goes down around-0.29 points. 
 
 
 ## Inference {-}
@@ -120,13 +195,12 @@ With mixed effects, the `lmer()` function provides z statistics (labeled as `t-v
 #gee_mod1 %>% summary()
 #lmer_mod1 %>% summary()
 
-
 ```
 
 5. Looking back on the models you fit, what do you conclude about the fixed coefficients? Do you think they are zero or not?
 
 
-ANSWER:
+ANSWER: If the fixed coeffecients were zero it could mean that our explanatory variables have no effect on the outcome, I think this is not true, we talked a little bit about t-values in class and how it relates to the null hypothesis, all of the outputs we got are not that close to zero, 3.5, -15, and 22.
 
 
 
@@ -137,15 +211,16 @@ For any model with a quantitative outcome, we should check to see if the residua
 
 6. Create a residual plot for your best model so far, plotting the residuals on the y-axis against a quantitative x-variable. Comment on the residual plot. See some example code below. 
 
-ANSWER:
+ANSWER: There is a decent amount of point above and below the line for model 2's residual plot, this can mean our model isn't favoring a certain outcome, and that we didn't overfit. 
 
 ```{r}
 # Residuals = Obs - Predicted
-
-data %>% 
-  mutate(Pred = predict(mod, newdata = .)) %>% #replace mod with your chosen model
-  mutate(Resid = y - Pred) %>% #replace y with your outcome
-  ggplot(aes(x = Pred, y = Resid)) +  # you can replace Pred with a quantitative x
+#second line removes NA for no errors
+activeLong %>% 
+  drop_na(Reasoning, Years, YRSEDUC) %>% 
+  mutate(Pred = predict(rsn_MEmod2, newdata = .)) %>% #replace mod with your chosen model
+  mutate(Resid = Reasoning - Pred) %>% #replace y with your outcome
+  ggplot(aes(x = Years, y = Resid)) +  # you can replace Pred with a quantitative x
   geom_point(alpha = .2) + 
   geom_hline(yintercept = 0) + 
   geom_smooth(se = FALSE) + 
@@ -157,16 +232,40 @@ data %>%
 
 7. Considering all of the choices you need to make, make an argument for one final model using a variety of tools in 3-5 sentences. 
 
-ANSWER:
+ANSWER: Model 3, when we use random slope and random intercept with mixed effects, we get the best fit, and the lowest AIC and BIC scores. 
+
+```{r}
+anova(rsn_MEmod2, )
+```
+
 
 
 8. Using that final model, what do you conclude about your original research question about brain training among the elderly?
 
 ANSWER:
-## Done! {-}
+## Done! {There is more insight when consider reasoning decline while taking a look at years and education, we know that there is some positive effect when the patient has higher years of education, but overtime the reasoning scores will decline the same. Some patients have a booster, when taking a look at how this effects reasoning, model 2 showed more insight that our first one with just random intercept. It has lower BIC, but when compared to model 3, it did not explain as much reasoning with added complexity.}
+
+
+
+
+
 
 - Render your homework.
 - Make sure the html file looks like you want it.
 - Submit your assignment as instructed.
 
 
+###extra notes from class
+#notes:
+#question: binary outcomes and mean models?
+#interactions terms to see if treatment is different?
+#we could do first 5 years, no missing data
+#short term and long term... boosters,,, slope (interaction term), memory and control (or not memory... use indicator for memory, group control with other groups reasoning and speed)
+
+#binary... driving and deceased, population means? can we use logistic, yes, use glmer, family = binomial... missing data for driving,,, is death an outcome? death with demographic, less with group, death doesn't change over time. 
+#we can use baseline info... try continuous outcome... main thing
+#simplify to year 5, still longitudinal, we can cut off at 5, subject specific gap, use mixed effects models...
+
+#try using nest? between coeff groups
+#anova for mixed effects
+#relationship by gender over
