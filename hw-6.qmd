@@ -25,7 +25,7 @@ For this assignment, I want you to work together with a partner.
 
 
 
-ANSWER: We will take a look at the other groups, we will model reasoning with some of the explanatory variables like education, and years. Then we'll try to see what it looks like when we consider if the patient received any boosters, we will try this as an interaction term. 
+ANSWER: How does the training intervention affect the reasoning scores over time, controlling for baseline age and years of education?
 
 
 
@@ -33,12 +33,13 @@ ANSWER: We will take a look at the other groups, we will model reasoning with so
 
 
 
-ANSWER (In R formula structure): Measure reasoning overtime with years and education as our explanatory variables.
+ANSWER (In R formula structure): Measure reasoning over time with years and education as our explanatory variables.
 
 $$
+
 Y_{ij} = \beta_{0} + b_{i0} + \beta_{1}+ b_{i1} \\
 
-(Reasoning_{ij}) =  \beta_{0} + b_{i0} + \beta_{1}*Years_{ij} + \beta_{2}*YRSEDUC_{i}
+(Reasoning_{ij}) =  \beta_{0} + b_{i0} + \beta_{1}*Years_{ij} + \beta_{2}*YRSEDUC_{i} + \beta_{3}*AgeAtBaseline_{i} 
 
 $$
 
@@ -73,10 +74,10 @@ $$\mathbf{Y}_{i}\sim \mathcal{N}(\mathbf{X}_{i}\boldsymbol\beta,\mathbf{Z}_i\mat
 BEFORE YOU BEGIN: Decide whether you and your partner want to use Mixed Effects or GEE models. You'll use the type of model throughout.
 
 ```{r}
-#We will use linear mixed effects models
-
+#We will use mixed effects models
+source('cleaning_active.R') 
 activeLong %>%
-  group_by(Years,INTGRP,BOOSTER) %>%
+  group_by(Years, INTGRP, BOOSTER) %>%
   summarize(Reasoning = mean(Reasoning,na.rm=TRUE)) %>%
   ggplot(aes(x = Years,  y =Reasoning, color = INTGRP)) + 
   geom_line() + facet_wrap(~BOOSTER)
@@ -91,66 +92,57 @@ activeLong %>%
 - Mixed Effects: start with random intercept and consider which coef could be random, describe them in words, and then fit them with `lme4::lmer()`. 
 
 ```{r}
-source('cleaning_active.R') # Open Cleaning.R to see the data cleaning steps to create a long format dataset
 library(geeM)
 library(lme4)
 
-activeLong <- activeLong %>%
+activeLong_new <- activeLong %>%
   group_by(AID) %>%
-  mutate(Baseline_Reasoning = Reasoning[Years == 0])
+  mutate(Baseline_Reasoning = Reasoning[Years == 0]) |> 
+  filter(
+    INTGRP %in% c("Reasoning Training", "Control"),
+    Years <= 5
+    ) |> 
+  mutate(
+  years_less3 = pmin(Years, 3),
+  years_more3 = pmax(Years - 3, 0)
+  ) |> 
+  drop_na(Reasoning, Years, YRSEDUC, AgeAtBaseline, INTGRP, GENDER)
 ```
 
 ANSWER:
 
-
-#try reasoning with booster as an interaction term
-
-- Model 1:
-
-
+- Model 1: The model estimates the average change in reasoning scores over time (assuming different slopes before and after 3 years), controlling for years of education, age at baseline, and gender. It allows participants to have random intercepts (reasoning baselines).
 
 ```{r}
+rsn_mod1 <-  lmer(
+  Reasoning ~ INTGRP*(years_less3 +  years_more3) + YRSEDUC + AgeAtBaseline + GENDER + (1 | AID), 
+  data = activeLong_new, 
+  REML = FALSE)
 
-rsn_mod1 <- activeLong %>% drop_na(Reasoning, Years, YRSEDUC) %>% 
-  lmer(Reasoning ~ Years + YRSEDUC + (1|AID), data = ., REML = FALSE)
-#linear mixed effect model for reasoning and education
-
-rsn_mod1  %>% summary()
-
-#11.22 std dev of intercept
-
-
-
-rsn_mod1 <- activeLong %>% filter(Years > 0) %>% drop_na(Reasoning, Baseline_Reasoning, Years, YRSEDUC,BOOSTER) %>% 
-  lmer(Reasoning ~ Baseline_Reasoning + Years*I(Years > 3)*I(INTGRP == 'Reasoning Training')*BOOSTER + YRSEDUC + (1|AID), data = ., REML = FALSE)
-
-rsn_mod1  %>% summary()
-#linear mixed effect model for reasoning and education
-
-
+rsn_mod1 %>% summary()
 ```
 
+
+Model 2: The model is the same as 1, except it includes random slopes for years before and after Year 3 and assumes the slopes and random intercept are correlated.
+
 ```{r}
+rsn_mod2 <-  lmer(
+  Reasoning ~ INTGRP*(years_less3 +  years_more3) + YRSEDUC + AgeAtBaseline + GENDER + (1 + years_less3 +  years_more3 | AID), 
+  data = activeLong_new, 
+  REML = FALSE)
 
-
-rsn_ME_boost <- activeLong %>% drop_na(Reasoning, Years, YRSEDUC, BOOSTER) %>% 
-  lmer(Reasoning ~ Years*BOOSTER + YRSEDUC + (1|AID), data = ., REML = FALSE)
-
-rsn_ME_boost %>% summary()
-
+rsn_mod2 %>% summary()
 ```
 
-- Model 2:
+Model 3: Same as the previous model, allowing for a random intercept and random slopes for each participant, but these slopes are not assumend to be correlated.
 
 ```{r}
+rsn_mod2 <-  lmer(
+  Reasoning ~ INTGRP*(years_less3 +  years_more3) + YRSEDUC + AgeAtBaseline + GENDER + (1 + years_less3 +  years_more3 || AID), 
+  data = activeLong_new, 
+  REML = FALSE)
 
-#random intercept mixed effects model
-
-rsn_MEmod2 <- activeLong %>% drop_na(Reasoning, Years, YRSEDUC, AID) %>% 
-  lmer(Reasoning ~ Years + YRSEDUC + (Years|AID), data = ., REML = FALSE)
-
-rsn_MEmod2 %>% summary()
-
+rsn_mod2 %>% summary()
 ```
 
 
@@ -159,7 +151,19 @@ rsn_MEmod2 %>% summary()
 
 ANSWER:
 
-- Model 1: mixed effects and random intercept. This model has a better BIC, but lower AIC compared to model 2. We can see that the expected reasoning score is 3.89, overtime this is expected to go down by 0.32, when considering the years of patient education there is a positive effect of 1.82.
+For each model: 
+- being in the control is associated with a decrease in reasoning scores
+- each additional year of age at baseline is associated with a decrease in reasoning scores
+- being female is associated with an increase in reasoning score
+- before the 3-year mark, each additional year is associated with an increase in reasoning scores (for the intervention group)
+- after the 3-year mark, each additional year is associated with a decrease in reasoning scores (for the intervention group)
+- before the 3-year mark, being in the control group is associated with a decrease in slope before the 3-year mark
+- after the 3-year mark, being in the control group is associated with a 0.86 increase in slope
+- Tl;dr - for those participants who received an intervention, reasoning scores increase more steeply in the first 3 years but also decrease more steeply after the 3-year mark (as opposed to those in the control, holding all else constant). 
+- This is common across all models, even though the coefficients change.
+- This BIC and AIC were similar across all correlation structures and even when allowing participants to have random slopes
+
+
 
 
 - Model 2: random intercept, with booster term
