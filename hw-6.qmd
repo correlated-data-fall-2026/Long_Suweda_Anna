@@ -25,7 +25,7 @@ For this assignment, I want you to work together with a partner.
 
 
 
-ANSWER: How does the training intervention affect the reasoning scores over time, controlling for baseline age and years of education?
+ANSWER: Does the reasoning training intervention positively affect the reasoning over time, controlling for baseline age, years of education, and gender?
 
 
 
@@ -33,13 +33,13 @@ ANSWER: How does the training intervention affect the reasoning scores over time
 
 
 
-ANSWER (In R formula structure): Measure reasoning over time with years and education as our explanatory variables.
+ANSWER (In R formula structure): 
 
 $$
 
 Y_{ij} = \beta_{0} + b_{i0} + \beta_{1}+ b_{i1} \\
 
-(Reasoning_{ij}) =  \beta_{0} + b_{i0} + \beta_{1}*Years_{ij} + \beta_{2}*YRSEDUC_{i} + \beta_{3}*AgeAtBaseline_{i} 
+(Reasoning_{ij}) = \beta_{0} + b_{i0} + (\beta_{1}+ b_{i1})years\_less3_{ij} + (\beta_{2}+ b_{i2})years\_more3_{ij} + \beta_{3}INTGRP + \beta_{4}YRSEDUC + \beta_{5}AgeAtBaseline + \beta_{6}Gender + \beta_{7}(INTGRP_{ij}*years\_less3_{ij})  + \beta_{8}(INTGRP_{ij}*years\_more3_{ij})
 
 $$
 
@@ -134,15 +134,15 @@ rsn_mod2 <-  lmer(
 rsn_mod2 %>% summary()
 ```
 
-Model 3: Same as the previous model, allowing for a random intercept and random slopes for each participant, but these slopes are not assumend to be correlated.
+Model 3: Same as the previous model, allowing for a random intercept and random slopes for each participant, but these slopes are not assumed to be correlated.
 
 ```{r}
-rsn_mod2 <-  lmer(
+rsn_mod3 <-  lmer(
   Reasoning ~ INTGRP*(years_less3 +  years_more3) + YRSEDUC + AgeAtBaseline + GENDER + (1 + years_less3 +  years_more3 || AID), 
   data = activeLong_new, 
   REML = FALSE)
 
-rsn_mod2 %>% summary()
+rsn_mod3 %>% summary()
 ```
 
 
@@ -164,14 +164,6 @@ For each model:
 - This BIC and AIC were similar across all correlation structures and even when allowing participants to have random slopes
 
 
-
-
-- Model 2: random intercept, with booster term
-- The AIC improves compared to model 1, but the BIC is a little bit higher, we get an output 1.45, this tells us that when holding everything else constant patients that receive a booster score a little bit higher than patients without it. So there is a small positive effect with boosters and reasoning compared to patients without it. 
-
-
-- Model 3: mixed effects and, random intercept, random slope 
-- This model includes random intercept and random slopes, it doesn't include boosters as an interaction. It has the lowest AIC and BIC of the three. This tells us about the fit of the model, it doesn't receive a penalty for added complexity. The random intercept here is 3.89, this is where most patients tend to start for the mean reasoning score, when we consider education/YRSEDUC we can expect the score to be around 1.82 points higher for each year, in ghe fixed effects part we see that over time/years, the reasoning score goes down around-0.29 points. 
 
 
 ## Inference {-}
@@ -198,13 +190,15 @@ With mixed effects, the `lmer()` function provides z statistics (labeled as `t-v
 ```{r}
 #gee_mod1 %>% summary()
 #lmer_mod1 %>% summary()
-
+rsn_mod1 %>% summary()
+rsn_mod2 %>% summary()
+rsn_mod3 %>% summary()
 ```
 
 5. Looking back on the models you fit, what do you conclude about the fixed coefficients? Do you think they are zero or not?
 
 
-ANSWER: If the fixed coeffecients were zero it could mean that our explanatory variables have no effect on the outcome, I think this is not true, we talked a little bit about t-values in class and how it relates to the null hypothesis, all of the outputs we got are not that close to zero, 3.5, -15, and 22.
+ANSWER: Across all our models, the only coefficient that has an absolute t-value lower that 2 is gender, meaning we do not have evidence that the fixed effect of gender has a statistically significant effect on reasoning scores.
 
 
 
@@ -215,39 +209,60 @@ For any model with a quantitative outcome, we should check to see if the residua
 
 6. Create a residual plot for your best model so far, plotting the residuals on the y-axis against a quantitative x-variable. Comment on the residual plot. See some example code below. 
 
-ANSWER: There is a decent amount of point above and below the line for model 2's residual plot, this can mean our model isn't favoring a certain outcome, and that we didn't overfit. 
+ANSWER: For years, the residuals are generally centered around y=0 from year 2 onward. Before that, there is variability; at Year 0, the model tends to overestimate, then underestimate at Year 0.25.
 
 ```{r}
 # Residuals = Obs - Predicted
 #second line removes NA for no errors
-activeLong %>% 
-  drop_na(Reasoning, Years, YRSEDUC) %>% 
-  mutate(Pred = predict(rsn_MEmod2, newdata = .)) %>% #replace mod with your chosen model
-  mutate(Resid = Reasoning - Pred) %>% #replace y with your outcome
+activeLong_new %>%
+  ungroup() |> 
+  drop_na(Reasoning, Years, YRSEDUC, AgeAtBaseline, INTGRP, GENDER) %>%
+  mutate(Pred = predict(rsn_mod1, newdata = .)) %>% #replace mod with your chosen model
+  mutate(Resid = Reasoning - Pred) %>%  #replace y with your outcome
   ggplot(aes(x = Years, y = Resid)) +  # you can replace Pred with a quantitative x
   geom_point(alpha = .2) + 
   geom_hline(yintercept = 0) + 
   geom_smooth(se = FALSE) + 
   theme_classic()
-
-
-
 ```
 
 7. Considering all of the choices you need to make, make an argument for one final model using a variety of tools in 3-5 sentences. 
 
-ANSWER: Model 3, when we use random slope and random intercept with mixed effects, we get the best fit, and the lowest AIC and BIC scores. 
+ANSWER: When comparing nested to non-nested versions of Model 2 for fixed effects, the p-value for rsn_mod2 was 4.149e-09, which is lower than the significance threshold of 0.05, meaning we can reject the null hypothesis that the interaction terms have no effect. The AIC and BIC both drop (41361 to 41361 to 41325 and 41422 to 41412, respectively). For random effect, the non-nested model has a p-value of 9.853e-06, so we can reject the null hypothesis here, too. The AIC drops from 41331 to 41310, while the BIC increases from 41405 to 41418. Despite the BIC increasing, we still believe the non-nested versions of this model (using interaction terms + random intercepts and random slopes for years) is the strongest final model.
 
 ```{r}
-anova(rsn_MEmod2, )
+#fixed
+rsn_mod2_nested <-  lmer(
+  Reasoning ~ INTGRP + years_less3 +  years_more3 + YRSEDUC + AgeAtBaseline + GENDER + (1 + years_less3 + years_more3 | AID), 
+  data = activeLong_new, 
+  REML = FALSE)
+
+anova(rsn_mod2_nested, rsn_mod2)
+
+#random
+rsn_mod2_random <- lmer(
+  Reasoning ~ INTGRP*(years_less3 + years_more3) + YRSEDUC + AgeAtBaseline + GENDER + (1 + years_less3 + years_more3 | AID), 
+  data = activeLong_new, 
+  REML = TRUE
+)
+
+rsn_mod2_nested_random <- lmer(
+  Reasoning ~ INTGRP*(years_less3 + years_more3) + YRSEDUC + AgeAtBaseline + GENDER + (1|AID), 
+  data = activeLong_new, 
+  REML = TRUE
+)
+
+anova(rsn_mod2_nested_random, rsn_mod2_random)
 ```
 
 
 
 8. Using that final model, what do you conclude about your original research question about brain training among the elderly?
 
-ANSWER:
-## Done! {There is more insight when consider reasoning decline while taking a look at years and education, we know that there is some positive effect when the patient has higher years of education, but overtime the reasoning scores will decline the same. Some patients have a booster, when taking a look at how this effects reasoning, model 2 showed more insight that our first one with just random intercept. It has lower BIC, but when compared to model 3, it did not explain as much reasoning with added complexity.}
+ANSWER: Our final model estimates that overall, holding all else constant, reasoning training was associated with higher reasoning scores when compared to the control. During the first three years, the scores of those who received reasoning training increased at a faster rate than those who did not receive the intervention. However, after three years, the scores also decreased at a faster rate, suggesting that while there is evidence to show that reasoning training has short term benefits, those who received the intervention may return just as quickly to the baseline.
+
+
+## Done! 
 
 
 
@@ -257,19 +272,3 @@ ANSWER:
 - Render your homework.
 - Make sure the html file looks like you want it.
 - Submit your assignment as instructed.
-
-
-###extra notes from class
-#notes:
-#question: binary outcomes and mean models?
-#interactions terms to see if treatment is different?
-#we could do first 5 years, no missing data
-#short term and long term... boosters,,, slope (interaction term), memory and control (or not memory... use indicator for memory, group control with other groups reasoning and speed)
-
-#binary... driving and deceased, population means? can we use logistic, yes, use glmer, family = binomial... missing data for driving,,, is death an outcome? death with demographic, less with group, death doesn't change over time. 
-#we can use baseline info... try continuous outcome... main thing
-#simplify to year 5, still longitudinal, we can cut off at 5, subject specific gap, use mixed effects models...
-
-#try using nest? between coeff groups
-#anova for mixed effects
-#relationship by gender over
