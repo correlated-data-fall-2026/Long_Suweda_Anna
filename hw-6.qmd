@@ -33,7 +33,7 @@ ANSWER: Does the reasoning training intervention positively affect the reasoning
 
 
 
-ANSWER (In R formula structure): 
+ANSWER (In R formula structure): Reasoning ~ 
 
 $$
 
@@ -102,10 +102,7 @@ activeLong_new <- activeLong %>%
     INTGRP %in% c("Reasoning Training", "Control"),
     Years <= 5
     ) |> 
-  mutate(
-  years_less3 = pmin(Years, 3),
-  years_more3 = pmax(Years - 3, 0)
-  ) |> 
+  mutate(years_more3 = if_else(Years>=3, 1, 0)) |> 
   drop_na(Reasoning, Years, YRSEDUC, AgeAtBaseline, INTGRP, GENDER)
 ```
 
@@ -115,7 +112,7 @@ ANSWER:
 
 ```{r}
 rsn_mod1 <-  lmer(
-  Reasoning ~ INTGRP*(years_less3 +  years_more3) + YRSEDUC + AgeAtBaseline + GENDER + (1 | AID), 
+  Reasoning ~ INTGRP*years_more3*Years + YRSEDUC + AgeAtBaseline + GENDER + (1|AID), 
   data = activeLong_new, 
   REML = FALSE)
 
@@ -123,28 +120,16 @@ rsn_mod1 %>% summary()
 ```
 
 
-Model 2: The model is the same as 1, except it includes random slopes for years before and after Year 3 and assumes the slopes and random intercept are correlated.
+Model 2: The model is the same as 1, except it includes random slopes for years after Year 3 and assumes the slopes and random intercept are correlated.
 
 ```{r}
 rsn_mod2 <-  lmer(
-  Reasoning ~ INTGRP*(years_less3 +  years_more3) + YRSEDUC + AgeAtBaseline + GENDER + (1 + years_less3 +  years_more3 | AID), 
+  Reasoning ~ INTGRP*years_more3*Years + YRSEDUC + AgeAtBaseline + GENDER + (Years | AID), 
   data = activeLong_new, 
   REML = FALSE)
 
 rsn_mod2 %>% summary()
 ```
-
-Model 3: Same as the previous model, allowing for a random intercept and random slopes for each participant, but these slopes are not assumed to be correlated.
-
-```{r}
-rsn_mod3 <-  lmer(
-  Reasoning ~ INTGRP*(years_less3 +  years_more3) + YRSEDUC + AgeAtBaseline + GENDER + (1 + years_less3 +  years_more3 || AID), 
-  data = activeLong_new, 
-  REML = FALSE)
-
-rsn_mod3 %>% summary()
-```
-
 
 
 4. Write bullet points about what you learn about your outcome, research question, and the modeling process from fitting these two models. 
@@ -192,7 +177,6 @@ With mixed effects, the `lmer()` function provides z statistics (labeled as `t-v
 #lmer_mod1 %>% summary()
 rsn_mod1 %>% summary()
 rsn_mod2 %>% summary()
-rsn_mod3 %>% summary()
 ```
 
 5. Looking back on the models you fit, what do you conclude about the fixed coefficients? Do you think they are zero or not?
@@ -217,9 +201,9 @@ ANSWER: For years, the residuals are generally centered around y=0 from year 2 o
 activeLong_new %>%
   ungroup() |> 
   drop_na(Reasoning, Years, YRSEDUC, AgeAtBaseline, INTGRP, GENDER) %>%
-  mutate(Pred = predict(rsn_mod1, newdata = .)) %>% #replace mod with your chosen model
+  mutate(Pred = predict(rsn_mod2, newdata = .)) %>% #replace mod with your chosen model
   mutate(Resid = Reasoning - Pred) %>%  #replace y with your outcome
-  ggplot(aes(x = Years, y = Resid)) +  # you can replace Pred with a quantitative x
+  ggplot(aes(x = Pred, y = Resid)) +  # you can replace Pred with a quantitative x
   geom_point(alpha = .2) + 
   geom_hline(yintercept = 0) + 
   geom_smooth(se = FALSE) + 
@@ -231,28 +215,36 @@ activeLong_new %>%
 ANSWER: When comparing nested to non-nested versions of Model 2 for fixed effects, the p-value for rsn_mod2 was 4.149e-09, which is lower than the significance threshold of 0.05, meaning we can reject the null hypothesis that the interaction terms have no effect. The AIC and BIC both drop (41361 to 41361 to 41325 and 41422 to 41412, respectively). For random effect, the non-nested model has a p-value of 9.853e-06, so we can reject the null hypothesis here, too. The AIC drops from 41331 to 41310, while the BIC increases from 41405 to 41418. Despite the BIC increasing, we still believe the non-nested versions of this model (using interaction terms + random intercepts and random slopes for years) is the strongest final model.
 
 ```{r}
+anova(rsn_mod1,rsn_mod2 ) #same fixed effects, different random effects
+#h0: smaller model is correct
+
+
 #fixed
 rsn_mod2_nested <-  lmer(
-  Reasoning ~ INTGRP + years_less3 +  years_more3 + YRSEDUC + AgeAtBaseline + GENDER + (1 + years_less3 + years_more3 | AID), 
+  Reasoning ~ INTGRP * years_more3 * Years + YRSEDUC + (Years | AID), 
   data = activeLong_new, 
   REML = FALSE)
 
 anova(rsn_mod2_nested, rsn_mod2)
 
 #random
-rsn_mod2_random <- lmer(
-  Reasoning ~ INTGRP*(years_less3 + years_more3) + YRSEDUC + AgeAtBaseline + GENDER + (1 + years_less3 + years_more3 | AID), 
+rsn_mod2_nested2 <- lmer(
+  Reasoning ~INTGRP * years_more3 * Years +  AgeAtBaseline + GENDER + (Years | AID), 
   data = activeLong_new, 
   REML = TRUE
 )
 
-rsn_mod2_nested_random <- lmer(
-  Reasoning ~ INTGRP*(years_less3 + years_more3) + YRSEDUC + AgeAtBaseline + GENDER + (1|AID), 
-  data = activeLong_new, 
-  REML = TRUE
-)
 
-anova(rsn_mod2_nested_random, rsn_mod2_random)
+anova(rsn_mod2_nested2, rsn_mod2)
+
+
+
+rsn_mod2 <-  lmer(
+  Reasoning ~ INTGRP*years_more3*Years + YRSEDUC + AgeAtBaseline + GENDER + (Years | AID), 
+  data = activeLong_new, 
+  REML = TRUE)
+
+rsn_mod2 %>% summary()
 ```
 
 

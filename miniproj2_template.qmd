@@ -25,7 +25,7 @@ Here is your introduction to the topic. You should cite important and relevant w
 
 Draft:
 
-Many elderly adults experience a decline in function as they get age. Over the past few decades, researchers have sought to address factors that may influence this. In this analysis we will reference a study that focuses on whether or not the cognitive function of elderly adult can be improved with interventions. The data we will use data was collected from an experimental trial called "ACTIVE." (Citation Here.) The ACTIVE study began in 1996, and continued for about 10 years, patients were . The trial began with 2,082 participants, and includes measurements for subjects that passed away before the trial was completed. This study measures the outcomes of cognitive intervention in older adults, ages 65 and older. The recorded measurements include, patient characteristics, such as their age, gender, education, and baseline score. The participants were divided into 4 sub-groups, a control group, and 3 treatment groups, that measure Reasoning, Memory, and Processing Speed. The treatment groups received specialized training over 5-6 weeks, a subset within these groups had also received additional booster training.
+Many elderly adults experience a decline in function as they age. Over the past decades, researchers have sought to address factors that may influence this. In this analysis we reference a study that focuses on whether or not the cognitive function of elderly adult can be improved with interventions. The data we will use data was collected from an experimental trial called "ACTIVE." (Citation Here.) The ACTIVE study began in 1996, and continued for about 10 years, patients were . The trial began with 2,082 participants, and includes measurements for subjects that passed away before the trial was completed. This study measures the outcomes of cognitive intervention in older adults, ages 65 and older. The recorded measurements include, patient characteristics, such as their age, gender, education, and baseline score. The participants were divided into 4 sub-groups, a control group, and 3 treatment groups, that measure Reasoning, Memory, and Processing Speed. The treatment groups received specialized training over 5-6 weeks, a subset within these groups had also received additional booster training.
 
 We specifically seek to understand how a patients years of education effect their cognitive function in the Reasoning treatment group. We will use Mixed Effect models to capture this. We have included an addition term "Baseline_Reasoning" to account for the difference in scores patients began with, we will also consider the effect boosters may have on a patients reasoning outcome. In our model testing we included years, age, and gender.  
 
@@ -72,24 +72,64 @@ We will interpret various summary statistics, such as BIC, AIC, t-values, and co
 
 
 ```{r results = "hide"}
-#read in data
-#clean data, as needed
+library(tidyverse)
+library(geeM)
+library(lme4)
+
+source('cleaning_active.R')
+
+activeLong_new <- activeLong |> 
+  group_by(AID) |> 
+  filter(
+    INTGRP %in% c("Reasoning Training", "Control"),
+    Years <= 5
+    ) |> 
+  mutate(
+    years_more3 = if_else(Years>=3, 1, 0),
+    INTGRP = relevel(INTGRP, ref="Control")
+    ) |> 
+  drop_na(Reasoning, Years, YRSEDUC, AgeAtBaseline, INTGRP, GENDER)
 ```
 
 ## Results
 
-Tables, graphics, and statistics, Oh my!
+On average, the baseline scores of participants who received reasoning training were 2.81 points higher, when controlling for gender, years of education, and age at the beginning of the study. Among the intervention group, before Year 3, reasoning scores increased by an additional 0.83 points with each year compared with the control group. This means that while scores increased for both groups within the first three years, they increased more steeply for the intervention group. After Year 3, however, reasoning scores among the intervention group decreased by an average addition 1.63 points compared with the control. This means that after Year 3, while all participants' scores decreased with each year, the decrease was steeper among the intervention group.
 
-Talk about the results, but don't tie it to your main question/topic (yet!).
+```{r}
+rsn_mod2 <-  lmer(
+  Reasoning ~ INTGRP*years_more3*Years + YRSEDUC + AgeAtBaseline + GENDER + (Years | AID), 
+  data = activeLong_new, 
+  REML = FALSE)
+
+rsn_mod2 |> 
+  summary()
+```
+
+The residuals of the final model appear relatively symmetrically distributed around $y=0$; however, the final model tends to slightly overestimate reasoning scores among participants with lower scores and underestimate among participants with higher scores.
 
 ```{r results = "hide", echo = FALSE}
-#echo = FALSE forces it to not show the code
-#results = "hide" hides the output but shows the code
+activeLong_new %>%
+  ungroup() |> 
+  drop_na(Reasoning, Years, YRSEDUC, AgeAtBaseline, INTGRP, GENDER) %>%
+  mutate(Pred = predict(rsn_mod2, newdata = .)) %>% 
+  mutate(Resid = Reasoning - Pred) %>%  
+  ggplot(aes(x = Pred, y = Resid)) + 
+  geom_point(alpha = .2) + 
+  geom_hline(yintercept = 0) + 
+  geom_smooth(se = FALSE) + 
+  theme_classic()
+```
 
+The Q-Q plot of the intercept and years shows that the distribution of our random effects is approximately normal, with some deviation toward the higher and lower extremes.
 
+```{r}
+#intercept
+qqnorm(ranef(rsn_mod2)$AID[, "(Intercept)"])
+qqline(ranef(rsn_mod2)$AID[, "(Intercept)"])
 
-
-
+#years
+qqnorm(ranef(rsn_mod2)$AID[, "Years"])
+qqline(ranef(rsn_mod2)$AID[, "Years"])
 ```
 
 ```{r echo = FALSE}
@@ -103,15 +143,13 @@ library(kableExtra)
 ```
 
 
-Stick to facts and observations.
-
 ## Conclusions
 
-Connect and hypothesize about results in larger context. 
+Results from the model suggest that, while the training may have statistically significant improvements on reasoning in the short term, after three years, reasoning deteriorates faster, and participants return to the baseline. When taking conclusions from studies like ACTIVE, it is important to understand not only how intervention affects participants in absolute terms, but also how this relationship changes over time.
 
-Talk about what you learn about the topic from your results.
+There are several limitations to our conclusions. Some are inherent to the study: it was composed of volunteers who were not necessarily representative of the general population, especially in age and education, and participants who were older with lower cognitive function were more likely to drop out. By only looking at the first five years of the study, we hoped to lessen the impact of this attrition bias, but there is still greater missigness in the later years, which could make it more difficult to generalize our findings. 
 
-Discuss limitations of methods.
+In using a linear mixed-effects model, we assume a linear relationship between reasoning scores and years, which may not fully capture the shape of the data. LMMs also require us to drop or impute missing data, which may introduce bias if data is not missing at random. Additionally, the standard errors are only valid if the covariance model is correct.
 
 
 ## Acknowledgements
