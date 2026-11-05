@@ -12,7 +12,7 @@ format:
     toc-depth: 2
     embed-resources: true
 bibliography: Library.bib
-abstract: "Here is  a brief summary of why this paper is important and what are the main conclusions."
+abstract: "The ACTIVE study sought to test whether interventions in memory, reasoning, and speed of processing could impove cognitive health outcomes in older adults. We modeled the effect of the intervention on reasoning scores over a five-year period using a linear mixed effects model. Though participants who received the intervention initially saw steeper gains in reasoning skills, after the three-year mark, their scores decreased at a faster rate than the control group, suggesting that the intervention produces significant gains in the short term, but effectiveness decreases in the long term."
 ---
 
 ```{r setup, include=FALSE}
@@ -20,8 +20,6 @@ knitr::opts_chunk$set(echo = FALSE, message=FALSE, warnings=FALSE)
 ```
 
 ## Introduction
-
-Here is your introduction to the topic. You should cite important and relevant work [@heggeseth_impact_2013].
 
 Draft:
 
@@ -93,19 +91,25 @@ activeLong_new <- activeLong |>
 
 ## Results
 
-On average, the baseline scores of participants who received reasoning training were 2.81 points higher, when controlling for gender, years of education, and age at the beginning of the study. Among the intervention group, before Year 3, reasoning scores increased by an additional 0.83 points with each year compared with the control group. This means that while scores increased for both groups within the first three years, they increased more steeply for the intervention group. After Year 3, however, reasoning scores among the intervention group decreased by an average addition 1.63 points compared with the control. This means that after Year 3, while all participants' scores decreased with each year, the decrease was steeper among the intervention group.
+On average, the baseline scores of participants who received reasoning training were 2.81 points higher compared with those who did not (controlling for gender, years of education, and age at the beginning of the study). Among the intervention group before Year 3, reasoning scores increased by an additional 0.83 points with each year. This means that while scores increased for both groups within the first three years, they increased more steeply for the intervention group. After Year 3, however, reasoning scores among the intervention group decreased, on average, by an additional 1.63 points compared with the control group. This means that after Year 3, while all participants' scores decreased, the decrease was steeper among the intervention group.
 
-```{r}
+When comparing our final model to a model without random slopes using an Anova test, the p-value is below 0.05, meaning we can reject the null hypothesis that the random slopes do not improve the model. 
+
+```{r results = "hide", echo = FALSE}
 rsn_mod2 <-  lmer(
   Reasoning ~ INTGRP*years_more3*Years + YRSEDUC + AgeAtBaseline + GENDER + (Years | AID), 
   data = activeLong_new, 
-  REML = FALSE)
+  REML = TRUE)
 
-rsn_mod2 |> 
-  summary()
+rsn_mod2_new <-  lmer(
+  Reasoning ~ INTGRP*years_more3*Years + YRSEDUC + AgeAtBaseline + GENDER + (1|AID), 
+  data = activeLong_new, 
+  REML = TRUE)
+
+anova(rsn_mod2_new, rsn_mod2)
 ```
 
-The residuals of the final model appear relatively symmetrically distributed around $y=0$; however, the final model tends to slightly overestimate reasoning scores among participants with lower scores and underestimate among participants with higher scores.
+The residuals of the final model appear relatively symmetrically distributed around $y=0$; however, the final model tends to slightly overestimate reasoning scores at the lower extreme and underestimate at the higher extreme.
 
 ```{r results = "hide", echo = FALSE}
 activeLong_new %>%
@@ -145,20 +149,16 @@ library(kableExtra)
 
 ## Conclusions
 
-Results from the model suggest that, while the training may have statistically significant improvements on reasoning in the short term, after three years, reasoning deteriorates faster, and participants return to the baseline. When taking conclusions from studies like ACTIVE, it is important to understand not only how intervention affects participants in absolute terms, but also how this relationship changes over time.
+When taking conclusions from studies like ACTIVE, it is important to understand not only how intervention affects participants in absolute terms, but also how this relationship changes over time. Results from the model suggest that, while the training may have statistically significant improvements on reasoning in the short term, after three years, reasoning deteriorates faster, and participants return to the baseline. 
 
-There are several limitations to our conclusions. Some are inherent to the study: it was composed of volunteers who were not necessarily representative of the general population, especially in age and education, and participants who were older with lower cognitive function were more likely to drop out. By only looking at the first five years of the study, we hoped to lessen the impact of this attrition bias, but there is still greater missigness in the later years, which could make it more difficult to generalize our findings. 
+There are several limitations to our conclusions. The ACTIVE study was composed of volunteers who were not necessarily representative of the general population, especially in age and education, and participants who were older with lower cognitive function were more likely to drop out. By only looking at the first five years of the study, we hoped to lessen the impact of attrition bias, but the greater missigness in the later years might still make it more difficult to generalize our findings. 
 
 In using a linear mixed-effects model, we assume a linear relationship between reasoning scores and years, which may not fully capture the shape of the data. LMMs also require us to drop or impute missing data, which may introduce bias if data is not missing at random. Additionally, the standard errors are only valid if the covariance model is correct.
 
 
 ## Acknowledgements
 
-Thank individuals who helped make this work possible. 
-
-To do the references, build a Bibtex file (.bib) by creating a New File (text file) in RStudio and Save as Library.bib. It is the easiest to use Google Scholar to get the entries for the Bibtex file. Look for quotes and press Bibtex. Copy and paste into a .bib file. Check out Bibliographic Information at https://en.wikipedia.org/wiki/BibTeX. 
-
-Check out how to include citations into Quarto files at this site: https://quarto.org/docs/authoring/citations.html
+Thank you to Brianna!
 
 
 
