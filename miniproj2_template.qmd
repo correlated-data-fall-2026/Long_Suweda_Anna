@@ -12,7 +12,7 @@ format:
     toc-depth: 2
     embed-resources: true
 bibliography: Library.bib
-abstract: "The ACTIVE (Advanced Cognitive Training for Independent and Vital Elderly), study sought to test whether interventions in memory, reasoning, and speed of processing could impove cognitive health outcomes in older adults. We modeled the effect of the intervention on reasoning scores over a five-year period using a linear mixed effects model. Though participants who received the intervention initially saw steeper gains in reasoning skills, after the three-year mark, their scores decreased at a faster rate than the control group, suggesting that the intervention produces significant gains in the short term, but effectiveness decreases in the long term."
+abstract: "The ACTIVE study sought to test whether interventions in memory, reasoning, and speed of processing could impove cognitive health outcomes in older adults. We modeled the effect of the intervention on reasoning scores over a five-year period using a linear mixed effects model. Though participants who received the intervention initially saw steeper gains in reasoning skills, after the three-year mark, their scores decreased at a faster rate than the control group, suggesting that the intervention produces significant gains in the short term, but effectiveness decreases in the long term."
 ---
 
 ```{r setup, include=FALSE}
@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = FALSE, message=FALSE, warnings=FALSE)
 
 ## Introduction
 
-Many elderly adults experience a decline in function as they age. Over the past decades, researchers have sought to address factors that influence this. Our analysis draws on a study focusing on whether the cognitive function of elderly adult can be improved with interventions. The data was collected in an experimental trial called "ACTIVE." [@tennstedt2013active]. The ACTIVE study began in 1996, and continued for approximately 10 years, tracking repeated observations for subjects at several increments. The trial began with 2,082 participants age 65 or older, though some subjects passed away or left the study before the trial period was completed. The recorded measurements include patient characteristics, such as their baseline age, gender, education, and baseline scores. The participants were divided into 4 sub-groups: a control group, and 3 treatment groups, that measure Reasoning, Memory, and Processing Speed. These cognitive areas were selected because they show relatively early cognitive decline [@tennstedt2013active]. Our analysis narrows in on the reasoning intervention, which is intended to improve a person's ability to solve problems containing a serial pattern. The treatment groups received specialized training over 5-6 weeks, a subset within these groups had also received additional booster training.
+Many elderly adults experience a decline in function as they age. Over the past decades, researchers have sought to address factors that influence this. Our analysis draws on a study focusing on whether the cognitive function of elderly adult can be improved with interventions. The data was collected in an experimental trial called "ACTIVE: (Advanced Cognitive Training for Independent and Vital Elderly)" [@tennstedt2013active]. The ACTIVE study began in 1996, and continued for approximately 10 years, tracking repeated observations for subjects at several increments. The trial began with 2,082 participants age 65 or older, though some subjects passed away or left the study before the trial period was completed. The recorded measurements include patient characteristics, such as their baseline age, gender, education, and baseline scores. The participants were divided into 4 sub-groups: a control group, and 3 treatment groups, that measure Reasoning, Memory, and Processing Speed. These cognitive areas were selected because they show relatively early cognitive decline [@tennstedt2013active]. Our analysis narrows in on the reasoning intervention, which is intended to improve a person's ability to solve problems containing a serial pattern. The treatment groups received specialized training over 5-6 weeks, a subset within these groups had also received additional booster training.
 
 We specifically seek to understand how a the reasoning intervention affects participants' reasoning scores over time, not just in the short term or in absolute terms, while controlling for other factors such as age at baseline, gender, and education.
 
@@ -64,9 +64,7 @@ We opted to use a Mixed Effect model to model how the relationship between inter
 
 Because our data is longitudinal, we cannot assume observations from the same person are uncorrelated. Thus, we fit two mixed-effects models: one allowing for random slopes and one allowing for both random slopes and intercepts. Random intercepts and slopes help account for correlation within a participants' scores because if a participant begins with higher than average reasoning scores or a steeper than average slope, it follows that the rest of their scores will be distributed similarly.
 
-After fitting both models, we 
-
-All models were fit in R-Studio, using the lme4 package.
+All models were fit in R-Studio, using the lme4 package, visuals were made using tidyverse package.
 
 We will interpret various summary statistics, such as BIC, AIC, p-values, and correlation outputs to assess the effect combinations of explanatory variables (education, years, baseline age, gender) may have with the outcome (reasoning). Within our model we consider specifying specific time periods, before the 3 year mark and after the 3 year mark, this allows us to assess changes in the slope more clearly.
 
@@ -103,6 +101,8 @@ rsn_mod2_new <-  lmer(
   Reasoning ~ INTGRP*years_more3*Years + YRSEDUC + AgeAtBaseline + GENDER + (1|AID), 
   data = activeLong_new, 
   REML = TRUE)
+
+rsn_mod2 %>% summary()
 
 anova(rsn_mod2_new, rsn_mod2)
 ```
