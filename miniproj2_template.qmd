@@ -21,9 +21,7 @@ knitr::opts_chunk$set(echo = FALSE, message=FALSE, warnings=FALSE)
 
 ## Introduction
 
-Draft:
-
-Many elderly adults experience a decline in function as they age. Over the past decades, researchers have sought to address factors that may influence this. In this analysis we reference a study that focuses on whether or not the cognitive function of elderly adult can be improved with interventions. The data we will use data was collected from an experimental trial called "ACTIVE." (Citation Here.) The ACTIVE study began in 1996, and continued for about 10 years, patients were . The trial began with 2,082 participants, and includes measurements for subjects that passed away before the trial was completed. This study measures the outcomes of cognitive intervention in older adults, ages 65 and older. The recorded measurements include, patient characteristics, such as their age, gender, education, and baseline score. The participants were divided into 4 sub-groups, a control group, and 3 treatment groups, that measure Reasoning, Memory, and Processing Speed. The treatment groups received specialized training over 5-6 weeks, a subset within these groups had also received additional booster training.
+Many elderly adults experience a decline in function as they age. Over the past decades, researchers have sought to address factors that may influence this. In this analysis we reference a study that focuses on whether or not the cognitive function of elderly adult can be improved with interventions. The data we will use data was collected from an experimental trial called "ACTIVE." [@tennstedt2013active]. The ACTIVE study began in 1996, and continued for about 10 years, patients were . The trial began with 2,082 participants, and includes measurements for subjects that passed away before the trial was completed. This study measures the outcomes of cognitive intervention in older adults, ages 65 and older. The recorded measurements include, patient characteristics, such as their age, gender, education, and baseline score. The participants were divided into 4 sub-groups, a control group, and 3 treatment groups, that measure Reasoning, Memory, and Processing Speed. The treatment groups received specialized training over 5-6 weeks, a subset within these groups had also received additional booster training.
 
 We specifically seek to understand how a patients years of education effect their cognitive function in the Reasoning treatment group. We will use Mixed Effect models to capture this. We have included an addition term "Baseline_Reasoning" to account for the difference in scores patients began with, we will also consider the effect boosters may have on a patients reasoning outcome. In our model testing we included years, age, and gender.  
 
@@ -33,14 +31,7 @@ We specifically seek to understand how a patients years of education effect thei
 
 ## Data
 
-Instructions:
-Describe the data source and the data itself. 
-Describe the variables of interest and how they were measured.
-
-
-Draft:
-
-In this study we will use data collected by researches at 6 institutions; Indiana School of Medicine, John Hopkins University, Pennsylvania State University, Wayne State University, Hebrew Senior Life, and the New England Research Institute.
+In this study we will use data collected by researches at 6 institutions; Indiana School of Medicine, John Hopkins University, Pennsylvania State University, Wayne State University, Hebrew Senior Life, and the New England Research Institute [@rebok2014ten].
 
 These observations were recorded over a 10 year period, measurements were taken at the first phase, then at year 3, year 5, and year 10. The participants were divided into 4 outcome groups, a control group, and 3 treatment groups that were separated by Reasoning, Memory, and Processing Speed. 
 
@@ -51,12 +42,6 @@ The variables of interest are Age (patient age), YEARSEDUC (years of education a
 
 ## Methods
 
-Instructions:
-
-Describe and justify the statistical methods used in enough detail that the analysis could be replicated, citing original authors for methods and R packages used. Cite statistical methods such as the EM Algorithm [@dempster_maximum_1977]. 
-Describe model selection process and criteria used to evaluate models. 
-
-Draft:
 
 In this project we opted to use Mixed Effect models to capture the relationship between patient outcome and year of education. To further explore this relationship, we considered other explanatory variables such as age, gender, baseline score, and what year a patient's observation was recorded at.
 
@@ -163,3 +148,7 @@ Thank you to Brianna!
 
 
 ## References
+
+::: {#refs}
+:::
+
