@@ -12,7 +12,7 @@ format:
     toc-depth: 2
     embed-resources: true
 bibliography: Library.bib
-abstract: "The ACTIVE study sought to test whether interventions in memory, reasoning, and speed of processing could impove cognitive health outcomes in older adults. We modeled the effect of the intervention on reasoning scores over a five-year period using a linear mixed effects model. Though participants who received the intervention initially saw steeper gains in reasoning skills, after the three-year mark, their scores decreased at a faster rate than the control group, suggesting that the intervention produces significant gains in the short term, but effectiveness decreases in the long term."
+abstract: "The ACTIVE (Advanced Cognitive Training for Independent and Vital Elderly), study sought to test whether interventions in memory, reasoning, and speed of processing could impove cognitive health outcomes in older adults. We modeled the effect of the intervention on reasoning scores over a five-year period using a linear mixed effects model. Though participants who received the intervention initially saw steeper gains in reasoning skills, after the three-year mark, their scores decreased at a faster rate than the control group, suggesting that the intervention produces significant gains in the short term, but effectiveness decreases in the long term."
 ---
 
 ```{r setup, include=FALSE}
@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = FALSE, message=FALSE, warnings=FALSE)
 
 ## Introduction
 
-Many elderly adults experience a decline in function as they age. Over the past decades, researchers have sought to address factors that may influence this. In this analysis we reference a study that focuses on whether or not the cognitive function of elderly adult can be improved with interventions. The data we will use data was collected from an experimental trial called "ACTIVE." [@tennstedt2013active]. The ACTIVE study began in 1996, and continued for about 10 years, patients were . The trial began with 2,082 participants, and includes measurements for subjects that passed away before the trial was completed. This study measures the outcomes of cognitive intervention in older adults, ages 65 and older. The recorded measurements include, patient characteristics, such as their age, gender, education, and baseline score. The participants were divided into 4 sub-groups, a control group, and 3 treatment groups, that measure Reasoning, Memory, and Processing Speed. The treatment groups received specialized training over 5-6 weeks, a subset within these groups had also received additional booster training.
+Many elderly adults experience a decline in function as they age. Over the past decades, researchers have sought to address factors that may influence this. In this analysis we reference a study that focuses on whether or not the cognitive function of elderly adult can be improved with interventions. The data we will use data was collected from an experimental trial called "ACTIVE." [@tennstedt2013active]. The ACTIVE study began in 1996, and continued for about 10 years, and includes repeated observations for subjects at several increments. The trial began with 2,082 participants, and includes measurements for subjects that passed away before the trial was completed. This study measures the outcomes of cognitive intervention in older adults, ages 65 and older. The recorded measurements include, patient characteristics, such as their baseline age, gender, education, and baseline score. The participants were divided into 4 sub-groups, a control group, and 3 treatment groups, that measure Reasoning, Memory, and Processing Speed. The treatment groups received specialized training over 5-6 weeks, a subset within these groups had also received additional booster training.
 
 We specifically seek to understand how a patients years of education effect their cognitive function in the Reasoning treatment group. We will use Mixed Effect models to capture this. We have included an addition term "Baseline_Reasoning" to account for the difference in scores patients began with, we will also consider the effect boosters may have on a patients reasoning outcome. In our model testing we included years, age, and gender.  
 
@@ -35,7 +35,23 @@ In this study we will use data collected by researches at 6 institutions; Indian
 
 These observations were recorded over a 10 year period, measurements were taken at the first phase, then at year 3, year 5, and year 10. The participants were divided into 4 outcome groups, a control group, and 3 treatment groups that were separated by Reasoning, Memory, and Processing Speed. 
 
-The variables of interest are Age (patient age), YEARSEDUC (years of education a patient has received), Years (year the observation is recorded at), Gender(Female/Male), and an additional mutated variable, "Baseline_Reasoning". We will focus on the "Reasoning" outcome measure in our analysis.
+The variables of interest are patient age, years of education, year the observation is recorded at, and gender. We have included and an additional mutated variable that measures a patient's baseline reasoning. We will focus on the "Reasoning" outcome measure, in further understanding the effects we will draw comparisons between the Reasoning and Control group.
+
+The graphic below provides a starting point of the patterns we seek to understand within the analysis. The first panel of the graphic depicts reasoning scores over time by group. The second panel illustrates how reasoning scores across time differ when booster status is considered in the treatment groups.
+
+```{r}
+library(tidyverse)
+library(geeM)
+library(lme4)
+
+source('cleaning_active.R')
+
+activeLong %>%
+  group_by(Years, INTGRP, BOOSTER) %>%
+  summarize(Reasoning = mean(Reasoning,na.rm=TRUE)) %>%
+  ggplot(aes(x = Years,  y =Reasoning, color = INTGRP)) + 
+  geom_line() + facet_wrap(~BOOSTER) + labs(title = "Reasoning Scores over Time By Group and Booster Status", color = "Training Group")
+```
 
 
 
@@ -45,11 +61,11 @@ The variables of interest are Age (patient age), YEARSEDUC (years of education a
 
 In this project we opted to use Mixed Effect models to capture the relationship between patient outcome and year of education. To further explore this relationship, we considered other explanatory variables such as age, gender, baseline score, and what year a patient's observation was recorded at.
 
-We believe this model type is suitable for the data type, Mixed Effect models allow us to observe the individual slopes and intercepts for each patient. In a study assessing cognitive function, this feature is very useful, the model type provides insight on where a patient begins, and how 
+We believe this model type is suitable for the data type, Mixed Effect models allow us to observe the individual slopes and intercepts for each patient. In a study assessing cognitive function, this feature is very useful, the model type provides insight on where a patient begins, it takes into account the different starting points and how their measurements change over time.
 
 All models were tested in R-Studio, using the lme4 package.
 
-We will interpret various summary statistics, such as BIC, AIC, t-values, and correlation outputs to assess the effect combinations of explanatory variables (education, years, age) may have with the outcome (reasoning). 
+We will interpret various summary statistics, such as BIC, AIC, p-values, and correlation outputs to assess the effect combinations of explanatory variables (education, years, baseline age, gender) may have with the outcome (reasoning). Within our model we consider specifying specific time periods, before the 3 year mark and after the 3 year mark, this allows us to assess changes in the slope more clearly.
 
 
 
@@ -78,7 +94,7 @@ activeLong_new <- activeLong |>
 
 On average, the baseline scores of participants who received reasoning training were 2.81 points higher compared with those who did not (controlling for gender, years of education, and age at the beginning of the study). Among the intervention group before Year 3, reasoning scores increased by an additional 0.83 points with each year. This means that while scores increased for both groups within the first three years, they increased more steeply for the intervention group. After Year 3, however, reasoning scores among the intervention group decreased, on average, by an additional 1.63 points compared with the control group. This means that after Year 3, while all participants' scores decreased, the decrease was steeper among the intervention group.
 
-When comparing our final model to a model without random slopes using an Anova test, the p-value is below 0.05, meaning we can reject the null hypothesis that the random slopes do not improve the model. 
+When comparing our final model to a model without random slopes using an Anova test, the p-value is below 0.05, meaning we can reject the null hypothesis that the random slopes do not improve the model. Our final model has a BIC score of 41410, 4 points fewer than the candidate model, and an AIC of 41309, 18 points lower than the candidate. Metrics like AIC and BIC measure model fit, weighing accuracy with complexity, similar to a parsimonious penalty models with additional terms that do not explain the data better are penalized with a higher score.
 
 ```{r results = "hide", echo = FALSE}
 rsn_mod2 <-  lmer(
